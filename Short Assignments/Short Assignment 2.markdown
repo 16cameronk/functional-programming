@@ -22,16 +22,16 @@ Keng Low
             ((odd? b)
              (letrec ((iter 
                 (lambda ((c <integer>) (result <number>))
-                  (if (zero? c)
+                  (if (= c (quotient b 2))
                       result
-                      (iter (- c 1) (+ result a))))))
-                (iter b 0)))
+                      (iter (quotient c 2) (+ result (* (quotient c 2) (+ a a))))))))
+                (iter b a)))
             (else
              (letrec ((iter 
                 (lambda ((c <integer>) (result <number>))
-                  (if (zero? c)
+                  (if (= c (quotient b 2))
                       result
-                      (iter (- c 1) (+ result a))))))
-                (iter b 0))))))   
+                      (iter (quotient c 2) (+ result (* (quotient c 2) (+ a a))))))))
+                (iter b 0))))))  
 ```
 
