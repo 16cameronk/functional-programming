@@ -1,0 +1,141 @@
+<pre>
+
+Topic: The 'lambda' special form
+
+Procedures in Scheme are created using the 'lambda' special form.  The
+basic syntax for a lambda expression is:
+
+      (lambda <params> <body> ...)
+
+The <body> is a sequence of one or more Scheme expressions.  When
+applying the procedure, these expressions are evaluated in order, and
+the value of the last expression is returned as the value of the
+function.
+
+The <params> may take one of the following forms:
+
+    (x1 x2 ... xn)
+
+        This means the function takes exactly n parameters, whose
+        names are x1, x2, ... , xn.  Any identifier which is legal for
+        use as a variable name may be used to name a parameter; this
+        excludes syntactic keywords like "let", "if", "cond", etc.
+        If the empty list () is specified, the function takes zero
+        parameters.  It is an error to call a function with the wrong
+        number of parameters.
+
+        Parameters of this type are called "positional" parameters,
+        since they are assigned argument values based on their
+        positions in the formal parameter list.  So, if we write:
+
+          (define func (lambda (x y) (+ x y)))
+
+	Then, a call like (func 5 3) would map 5 to x and 3 to y.
+
+    (x1 x2 ... xk . r)
+
+	This means the function takes at least k parameters, whose
+	names are x1, x2, ..., xk.  The function may take zero or more
+	additional parameters, which will be transmitted as a list in
+	the parameter r.  For instance, suppose we define:
+
+	  (define func 
+	    (lambda (n . r) r))
+
+	Here are some example outputs:
+
+	     Call		Result
+
+	     (func)		Error...requires at least 1 positional arg.
+	     (func 3)		Returns ()
+	     (func 3 4 5)	Returns (4 5)
+	     etc.
+
+    args
+
+	This means the function takes zero or more arguments (notice
+	that there are no parentheses around 'args').  The entire
+	argument list is passed as a list in 'args'.  Example:
+
+	  (define func
+	    (lambda args (length args)))
+
+	     Call		Result
+	     (func)		0
+	     (func 1)		1
+	     (func 'a 'b 'c)	3
+	     etc.
+
+Scheme's basic 'lambda' expression is _untyped_.  This means that when
+the function is called, a value of any type may be supplied for each
+of the function's parameters.  
+
+   ((lambda (x) x) 'q)    ==> q
+   ((lambda (x) x) 5)     ==> 5
+   ((lambda (x) x) "foo") ==> "foo"
+   etc.
+
+Swindle extends the syntax of lambda to include support for _typed_
+parameters.  A typed parameter is one which will only accept values
+drawn from some specified set, called the _type_.  Some examples of
+types that are built in to Swindle include
+
+      <integer>	     - the parameter must be an integer number
+      <real>	     - the parameter must be a real number
+      <string>	     - the parameter must be a character string
+      <pair>	     - the parameter must be a pair
+      <function>     - the parameter must be a procedure object
+
+In Scheme, each parameter is specified by a single identifier.  In
+Swindle, a parameter may either be a plain identifier, or a list in
+the format (name type).  A plain identifier means what you would
+expect it to -- the parameter will accept values of any type.  The
+form (name type) means the parameter will only accept values of the
+specified type.
+
+Before the function is applied, the system checks to insure that the
+types of the arguments match the restrictions of the declared
+parameters.  If they do not match, it is an error, and the function
+does not get applied.
+
+The name <obj> or <top> in Swindle refers to the top-level abstract
+type of which every object is a member.  Therefore, an alternate way
+of specifying a parameter that can take an argument of any type is to
+specify (name <obj>) in the parameter list.
+
+A few examples:
+
+1.    A function that takes two integers
+
+      (lambda ((x <integer>) (y <integer>)) (+ x y))
+
+2.    A function that takes a function and a list:
+
+      (lambda ((f <function>) (lst <list>)) 
+        (apply f lst))
+
+3.    A function that takes a complex number and any object, 
+      two different forms:
+
+      (lambda ((c <complex>) (o <obj>)) (cons c o))
+
+      (lambda ((c <complex>) o) (cons c o))
+
+
+Subtleties:
+
+The Scheme dot-syntax for specifying a "rest" parameter is not
+miscible with the Swindle typed parameter extensions.  In other words,
+you can write something like (x y . r), but you can't specify typed
+parameters like ((x <integer>) (y <obj>) . r) or you will get an error
+from the interpreter.
+
+Instead, Swindle provides a Common Lisp style &rest keyword:
+
+	 (lambda ((s <string>) (n <integer>) &rest r) ...)
+
+This is equivalent in meaning to the pure Scheme, except of course,
+that the arguments are typed.  You cannot specify a type for the &rest
+parameter; it's always a list containing whatever arguments are left
+over.
+</pre>

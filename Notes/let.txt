@@ -1,0 +1,138 @@
+Topic: The 'let', 'let*' and 'letrec' special forms
+
+Local variable bindings are introduced using 'let'.  The syntax of
+'let' is:
+
+      (let ((v1 EXPR1)
+            (v2 EXPR2)
+	    ...
+	    (vn EXPRn))
+	 BODY)
+
+Each expression EXPR1 ... EXPRn is evaluated, in some unspecified
+order, and then the values are bound to the corresponding variables in
+a new local frame.  In this frame, the BODY is evaluated.  The
+BODY consists of a sequence of one or more Scheme expressions.  Each
+expression is evaluated, in order, and the value of the last
+expression is returned as the value of the 'let' expression.
+
+The BODY consists of a sequence of one or more Scheme expressions.  Each
+expression is evaluated, in order, and the value of the last
+expression is returned as the value of the 'let' expression.
+
+This is equivalent to:
+
+     ((lambda (v1 v2 ... vn) BODY) EXPR1 EXPR2 ... EXPRn)
+
+Notice that the order in which the expressions are evaluated is
+undefined.  That means the interpreter is free to choose any order it
+wants.  Furthermore, because the variables are not bound until _after_
+the expressions are evaluated, the expressions will not "see" the
+other variables being bound while they are being evaluated.
+
+Thus the sequence of expressions:
+
+     (define x 1)
+     (let ((x 5) (y (+ x 1)))
+       (+ x y))
+
+evaluates to 7, because (+ x 1) uses the x = 1 outside of the let.
+On the other hand, (+ x y) uses the x defined in the let.
+
+The 'let*' special form works like 'let', except that the expressions
+are evaluated in order, and each variable is bound immediately, so
+that EXPR2 sees v1, EXPR3 sees v1 and v2, etc.  So:
+
+     (let* ((v1 EXPR1)
+	    (v2 EXPR2)
+	    ...
+	    (vn EXPRn))
+	BODY)
+
+... is equivalent to:
+
+    (let ((v1 EXPR1))
+      (let ((v2 EXPR2))
+        ...
+		(let ((vn EXPRn))
+		  BODY) ... ))
+
+It is generally better to use 'let*' than to use a bunch of nested
+'let' statements.
+
+This implies that the sequence of expressions:
+
+     (define x 1)
+     (let* ((x 5) (y (+ x 1))) 
+       (+ x y))
+
+evaluates to 11, because the (+ x 1) uses the x = 5 from the previous
+variable assignment.
+
+Note that each expression is evaluated before its corresponding
+variable name is bound, which means you cannot use let or let* to bind
+recursive procedures.  For this purpose, the 'letrec' special form is
+provided.  A 'letrec' expression is similar to let:
+
+    (letrec ((v1 EXPR1)
+	     (v2 EXPR2)
+	     ...
+	     (vn EXPRn))
+	BODY)
+
+Unlike 'let' and 'let*', however, 'letrec' first creates a frame which
+binds v1, v2, ..., vn to undefined values.  Then, each expression is
+evaluated in this new environment, and the values are then bound to
+the corresponding variables in the new frame.  The practical upshot of
+this is that each expression can "see" all the other variables which
+are being bound by the 'letrec'.  
+
+This is intended to be used to bind local procedures, so that they can
+call themselves or each other.  If an expression actually tries to
+refer to one of the other variables being bound directly -- that is,
+if you try to evaluate it rather than just including it in the
+unevaluated body of a lambda expression -- the results are undefined
+(but likely to be very weird).
+
+Named 'let':
+
+Another form of 'let' is called "named let", and it looks like this:
+
+	(let name ((v1 EXPR1) 
+		   (v2 EXPR2)
+		   ... 
+		   (vn EXPRn))
+	  BODY)
+
+This works just like 'let', except that in the BODY, 'name' is bound
+to a procedure taking n arguments, which can be called to "restart"
+the body, with new values for v1, v2, ..., vn.  Probably an example is
+the best way to illustrate this:
+
+    (let loop ((x 0))
+      (cond ((> x 2) (printf "done~n"))
+	    (else
+	      (printf "x = ~a~n" x)
+	      (loop (+ x 1)))))
+
+This causes the following to be printed:
+
+     x = 0
+     x = 1
+     x = 2
+     done
+
+In other words, calling (loop n) is like starting the 'let' over again
+with the variable 'x' bound to n.  The following two expressions are
+equivalent:
+
+	(let name ((v1 EXPR1) ... (vn EXPRn))
+	  BODY)
+
+	(letrec ((name (lambda (v1 ... vn) BODY)))
+	  (name EXPR1 EXPR2 ... EXPRn))
+
+An important point to keep in mind here is that 'let' and 'let*' can
+be implemented in terms of 'lambda', while 'letrec' is a primitive
+syntactic form (there is no straightforward functional implementation
+of 'letrec' from 'lambda', unless you also include 'set!').

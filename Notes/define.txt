@@ -1,0 +1,57 @@
+Topic: The 'define' special form
+
+The 'define' special form is used to create new top-level bindings.
+In other words, you can use it to define new global variable names,
+which are visible throughout the program.  The basic syntax is:
+
+  (define <name> <expr>)
+
+The <expr> is a single Scheme expression, which is evaluated.  The
+<name> should be an identifier.  The value of the expression is bound
+to the name in the global environment.  If the name already has a
+value, the previous value is replaced.  (This actually simulates the
+effect of assignment, but it should not be used for this effect.)
+
+In Scheme, 'define' also supports an alternate syntax:
+
+   (define (name <params>) <body>)
+
+This is a short-hand for:
+
+   (define name
+     (lambda (<params>) <body>))
+
+However, the Swindle extensions for typed variables do not work for
+this second version of define.  The following is _not_ valid:
+
+   (define (name (x <integer>) (y <integer>)) (+ x y))
+
+
+Inner definitions:
+
+In general, 'define' is only valid at the top level.  For example, you
+cannot use 'define' in an expression like this:
+
+       (+ 3 (define x 15))  ;; illegal expression!
+
+However, there is one special case: At the beginning of a lambda form
+(see lambda.txt), or a 'define' that is defining a function, you can
+put one or more 'define' forms, and they will act as if they were
+local definitions inside that function.  Actually, they are just
+translated into 'let' or 'letrec' forms, as appropriate (see let.txt).
+
+For instance, this:
+
+   (lambda (x)
+     (define (foo n)
+       (cond ((zero? foo) 1)
+             (else (* n (foo (- n 1))))))
+     (+ x (foo x)))
+
+... would be silently translated into:
+
+   (lambda (x)
+     (letrec ((foo (lambda (n)
+                (cond ((zero? foo) 1)
+		      (else (* n (foo (- n 1))))))))
+       (+ x (foo x))))
