@@ -86,23 +86,154 @@ An expression is either
 * NOS
 	- "Need only show"
 
+# January 17, 2014
 
+* Tyler (TA): tcn2@duke.edu
+* Come early too, parking near the Gray building is hard to get
+	- The classroom is small and the door is at the front
+	- You want to sit at the front to get a good view of the blackboard
+* Setting up DrRacket
+	- DrRacket -> Other Languages -> Full Swindle
+	- At top, enter
+		> (require racket/base)
 
+## Induction
 
+**Induction steps**
+1. State property to be proven and induction variable
+2. Prove inductive step
+3. Prove base case
 
+Example:
+For all n >= 0,
+	1 + 2 + 3 + ... n = n(n + 1)/2
+Assume 1 + 2 + ... k = k(k + 1)/2 for some k
+	Add k + 1 to both sides
+	1 + 2 + ... + k + k + 1 = k(k + 1)/2 + k + 1
+	(k + 1)((k + 1) + 1)/2 = (k + 1)(k + 2)/2
+If you can get from k to (k + 1), we can get to anything.
 
+The above example is an example of weak induction. Depending on the problem, weak or strong induction may be preferable. If weak doesn't work, try strong and vice versa.
 
+Let's examine a strong induction example:
+**Fibonacci**
+	F(0) = 0
+	F(1) = 1
+For all k > 1, F(k) = F(k - 1) + F(k - 2)
 
+**Q: For any x, F(x) < 2^x**
+Suppose for all k < x, F(k) < 2^k
+	F(x - 1) < 2^(x - 1)
+	F(x - 2) < 2^(x - 2)
+We know F(x) = F(x-1) + F(x-2)
+	F(x) < 2^(x-1) + 2^(x-2)
+	F(x) < 2^(x-1) + 2^(x-1)
+		 = 2(2^(x-1))
+		 = 2^x
+    F(x) < 2^x
+Base cases:
+	x = 0, 1
 
+**Proving scheme programs with induction**
+* Scheme is different from Python and Java beacuse you can prove a program
 
+Factorial n = n! = n * (n - 1) * (n - 2) ...
+(define factorial
+	(lambda ((z <integer>))
+		(if (zero? z))
+			1
+			(* z (factorial(- z 1)))))
+We'll use the substitution model to prove
+Inductive step:
+	Given z > 0, suppose for all k < z
+		(factorial k) ==> k!
+	(foctorial z) ==>
+		(if zero? z)
+			1
+			(* z (factorial(- z 1)))
+		
+		(zero? z) ==> #f //since z > 0
 
+		(* z (factorial (- z 1)))
+		(* z (factorial (z - 1))
+		(* z (z -1)!)
+		(mult z {z - 1!})
 
+Base case:
+	(factorial z) ==> (if zero? z) 1 (* (factorial(- z 1)))
+		(if zero? z) ==> returns #t
+			returns 1
 
+## Tail Recursion
 
+* If the last thing the function does is call itself recursively, it has no deferred operations
 
+```
+(define factorial-1
+	(lambda ((z <integer>)))
+		(if (zero? z))
+			1
+			(* z (factorial(- z 1)))
+```
+This example is not tail recursive. It will fail at large inputs
 
+```
+(define factorial-2)
+	(lambda ((z <integer>)))
+		(letrec loop // the name of the function
+			(lambda (n <integer>) (result <integer>)))
+			if (zero? n)
+				result
+				(loop(- n 1)) (* result n)
+			(loop z 1)
+```
+So, iter is basically just a name of the loop.
+So this is sort of what happens:
+	(factorial-2 4)
+	(loop 4 1)
+	(loop 3 4)
+	...
+	(loop 0 24)
 
+**Using let NAME instead of letrec**
+	(let NAME (((v1 Exp1) ... (vn Expn) BODY)))
+```
+(define factorial-3
+	(lambda (z <integer>))
+		(let loop ((n z) (result 1)))
+			(if (zero? n))
+				result
+				(loop (- n 1) (* result n)))
+```
 
+**Fibonacci numbers**
+Standard method
+```
+(define fib-1
+	(lambda ((n <integer>)))
+		(if (< n z))
+			n
+			(+ (fib-1 (- n 1)))
+				(fib-1 (- n 2))))
+```
 
+How many state variables do you think we need? 2. For the previous two values.
 
+The following is quite hard (as acknowledged by Tyler)
+```
+(define fib-2
+	(lambda ((prev) (last) (n)))
+		(if (zero? n))
+			// some stuff
+		(fib-2 (last) (+ prev last) (- n 1)))
+```
 
+| n  |  Prev  | Last |
+|----|--------|------|
+| 6  |  0     |   1  |
+| 5  |  1     |   1  |
+| 4  |  1     |   2  |
+| 3  |  2     |   3  |
+| 2  |  3     |   5  |
+| 1  |  5     |   8  |
+| 0  |  8     |  13  |
