@@ -54,25 +54,64 @@
     (fn length (- (* 2 PI/3)) level)))
 
 (define square-snowflake:2
-  (lambda ((length <real>) (level <integer>))
-    (side length 0.0 level)
-    (side length PI/2 level)
-    (side length (- PI) level)
-    (side length (- PI/2) level)))
+  (lambda ((length <real>) (level <integer>) (fn <function>))
+    (fn length 0.0 level)
+    (fn length PI/2 level)
+    (fn length (- PI) level)
+    (fn length (- PI/2) level)))
 
+;; Problem 3
+
+(define side-inv
+  (lambda ((length <real>) (heading <real>) (level <integer>) (in <number>))
+    (if (zero? level)
+        (drawto heading length)
+        (let ((len/3 (/ length 3))
+              (lvl-1 (- level 1))
+              (int (in))
+          (= int 1)
+          (if (positive? in)
+              ((side-inv len/3 heading lvl-1)
+               (side-inv len/3 (- heading PI/3) lvl-1)
+               (side-inv len/3 (+ heading PI/3) lvl-1)
+               (side-inv len/3 heading lvl-1))
+              ((side-inv len/3 heading lvl-1)
+               (side-inv len/3 (+ heading PI/3) lvl-1)
+               (side-inv len/3 (- heading PI/3) lvl-1)
+               (side-inv len/3 heading lvl-1)))))))
+
+(define snowflake-inv
+  (lambda ((length <real>) (level <integer>) (fn <function>) (inv <function>))
+    ;(class-of (inv level))))
+    ;(zero? (inv level))))
+    ;(= 1 (inv level))))
+    (fn length 0.0 level (inv level))
+    (fn length (* 2 PI/3) level (inv level))
+    (fn length (- (* 2 PI/3)) level (inv level))))
 
 ;; Make the graphics window visible, and put the pen somewhere useful
-(init-graphics 300 300)
+(init-graphics 500 500)
 (clear)
 (moveto 100 100)
 
 ;; Problem 1
-(square-snowflake:1 150 3)
+;; (square-snowflake:1 150 3)
 
 ;; Problem 2
 ;; van Koch initiator with van Koch generator
 ;; (snowflake:2 200 3 side)
 ;; (snowflake:0 200 3)
+;; van Koch initiator with flip-side generator
+;; (snowflake:2 150 3 flip-side)
+;; square initiator with van Koch generator
+;; (square-snowflake:2 200 3 side)
+;; square initiator with flip-side generator
+;; (square-snowflake:2 150 3 flip-side)
 
+;; Problem 3
+;; Test, it should look like the original snowflake
+(snowflake-inv 150 3 side-inv
+               (lambda ((level <integer>)) 
+	         (if (odd? level) 1 -1)))
 
 
