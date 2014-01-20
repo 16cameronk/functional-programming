@@ -237,3 +237,9 @@ The following is quite hard (as acknowledged by Tyler)
 | 2  |  3     |   5  |
 | 1  |  5     |   8  |
 | 0  |  8     |  13  |
+
+# January 19, 2014
+
+To get the type of an object
+> (class-of x)
+

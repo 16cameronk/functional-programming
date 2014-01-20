@@ -63,36 +63,49 @@
 ;; Problem 3
 
 (define side-inv
-  (lambda ((length <real>) (heading <real>) (level <integer>) (in <number>))
+  (lambda ((length <real>) (heading <real>) (level <integer>))
     (if (zero? level)
         (drawto heading length)
         (let ((len/3 (/ length 3))
-              (lvl-1 (- level 1))
-              (int (in))
-          (= int 1)
-          (if (positive? in)
-              ((side-inv len/3 heading lvl-1)
-               (side-inv len/3 (- heading PI/3) lvl-1)
-               (side-inv len/3 (+ heading PI/3) lvl-1)
-               (side-inv len/3 heading lvl-1))
-              ((side-inv len/3 heading lvl-1)
-               (side-inv len/3 (+ heading PI/3) lvl-1)
-               (side-inv len/3 (- heading PI/3) lvl-1)
-               (side-inv len/3 heading lvl-1)))))))
+              (lvl-1 (- level 1)))
+          (side-inv len/3 heading lvl-1)
+          (side-inv len/3 (+ heading PI/3) lvl-1)
+          (side-inv len/3 (- heading PI/3) lvl-1)
+          (side-inv len/3 heading lvl-1)))))
 
 (define snowflake-inv
   (lambda ((length <real>) (level <integer>) (fn <function>) (inv <function>))
     ;(class-of (inv level))))
     ;(zero? (inv level))))
     ;(= 1 (inv level))))
-    (fn length 0.0 level (inv level))
-    (fn length (* 2 PI/3) level (inv level))
-    (fn length (- (* 2 PI/3)) level (inv level))))
+    (cond ((positive? (inv level))
+           (side length 0.0 level)
+           (side length (* 2 PI/3) level)
+           (side length (- (* 2 PI/3)) level))
+        (else
+         (side-inv length 0.0 level)
+         (side-inv length (* 2 PI/3) level)
+         (side-inv length (- (* 2 PI/3)) level)))))
+
+;; Problem 4
+
+(define side-length
+  (lambda ((length <real>) (heading <real>) (level <integer>))
+    (letrec ((iterate
+              (lambda ((level-2 <integer>) (length-2 <number>) (result <number>))
+                (if (zero? level-2)
+                    (* result 4)
+                    (iterate (- level-2 1) (/ length-2 3) (+ result (/ length-2 3)))))))
+      (iterate level length 0))))
+
+(define snowflake-length
+  (lambda ((length <real>) (level <integer>) (fn <function>) (inv <function>))
+    (* 3 (fn length 0 level))))
 
 ;; Make the graphics window visible, and put the pen somewhere useful
-(init-graphics 500 500)
-(clear)
-(moveto 100 100)
+;;(init-graphics 500 500)
+;;(clear)
+;;(moveto 100 100)
 
 ;; Problem 1
 ;; (square-snowflake:1 150 3)
@@ -110,8 +123,17 @@
 
 ;; Problem 3
 ;; Test, it should look like the original snowflake
-(snowflake-inv 150 3 side-inv
-               (lambda ((level <integer>)) 
-	         (if (odd? level) 1 -1)))
+;(snowflake-inv 100 3 side-inv 
+;               (lambda ((level <integer>)) 1))
+;; Prodecure 1
+;;(snowflake-inv 150 3 side-inv
+;;               (lambda ((level <integer>)) 
+;;	         (if (odd? level) 1 -1)))
+;; Procedure 2
+;; (snowflake-inv 150 3 side-inv
+;;               (lambda ((level <integer>)) 
+;;	         (if (even? level) 1 -1)))
 
-
+;; Problem 4
+;;(snowflake-length 100.0 3 side-length 
+;;                  (lambda ((level <integer>)) 1))
