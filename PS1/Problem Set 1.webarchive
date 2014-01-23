@@ -1,777 +1,0 @@
-bplist00Ò_WebMainResource_WebSubresourcesÕ	
-_WebResourceMIMEType_WebResourceTextEncodingName_WebResourceFrameName^WebResourceURL_WebResourceDataYtext/htmlUUTF-8P_<http://www.cs.duke.edu/brd/Teaching/dm/psets/ps1/index.shtmlOWõ<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"><!-- #include virtual="../../ssi/term.ssi" --><!-- #set var="pset_num" value="1" --><html><head>
-  <title>CS 230 Problem Set </title>
-
-  <link rel="stylesheet" type="text/css" href="../../cs18.css">
-  <link rel="shortcut icon" href="../../img/yinyang.ico">
-<style type="text/css"></style></head>
-<body>
-
-<!-- #include virtual="../../ssi/pset-title.ssi"-->
-
-<h1>CS 230 </h1>
-<h2>Problem Set <!-- #echo var="pset_num" -->:
-The von Koch Fractal</h2>
-
-<ul>
-  <li><span class="menu"><a href="#general">General Instructions
-      </a></span>
-  </li><li><span class="menu"><a href="#bg">Background on Fractals
-      </a></span>
-  </li><li><span class="menu"><a href="#prob1">Different Initiators
-      &amp; Generators</a></span>
-  </li><li><span class="menu"><a href="#prob2">Generalizing the
-      System</a></span>
-  </li><li><span class="menu"><a href="#prob3">Inverting the 
-      Generator</a></span>
-  </li><li><span class="menu"><a href="#prob4">Calculating the Length
-      of the Snowflake Figure</a></span>
-  </li><li><span class="menu"><a href="#contest">Awesome Fractal 
-      Contest</a></span>
-</li></ul>
-
-<h3 style="text-align: left">Files:</h3>
-<ul>
-  <li><tt><a href="cs230.ps1.scm">cs230.ps1.scm</a></tt>
-  </li><li><tt><a href="cs230-graphics.scm">cs230-graphics.scm</a></tt>
-</li></ul>
-
-<hr>
-
-<h2><a name="general"></a>General Instructions</h2>
-
-<p><span style="text-decoration: underline">Before you do
-anything</span>, please read the entire assignment
-<strong>carefully</strong>.  It contains many suggestions which can
-save you a lot of struggle later on.  To borrow an epigram from the
-carpenter's trade, <strong>think twice, code once</strong>.  You will
-have a much easier and more fun time with all the assignments in this
-class, if you keep that in mind!</p>
-
-<p>In general, you must write up and print out your solutions to this
-  assignment, and hand them in at lecture, and submit them using
-  <a href="../../sakai.html">Sakai</a>.  <strong>No late assignments will be accepted,</strong> so
-  please start early. </p><p>Since there is no lecture on 1/20, for this
-  assignment only, please use Sakai, but you do not need to print out
-  your assignent.</p>
-
-<p>For this and future assignments you will need to use
-  Racket. <a href="../../racket/How_to_Download_Racket.html">How to
-  Download Racket</a>. Go to Language, Choose Language, Full Swindle and do
-  not put #lang... at the top of your definitions window. 
-<!-- #set var="work" value="alone" -->
-<!-- #include virtual="../../ssi/pset-info.ssi" -->
-
-</p><hr>
-
-<h2><a name="bg"></a>Background:  Fractals</h2>
-
-<p>In this problem set, we will be experimenting with
-<em>fractals</em>.  Among the most famous fractals are the Peano
-Curve, the Hilbert Curve, the Cantor set, the Julia set, the
-Mandelbrot set, and the von Koch Snowflake, the latter of which was
-first described by Helge von Koch in 1904.  These figures are not only
-aesthetically pleasing, but also have some important applications.
-For example, the Hilbert curve is used in dithering and compressing
-bit-mapped images.</p>
-
-<p>A large class of fractals can be described by specifying an <span class="def">initiator</span> and a <span class="def">generator</span>.
-The initiator is a starting shape, and the generator is a rule that
-can be applied to refine the shape.  You can think of the initiator as
-being a rough initial "approximation" of the fractal; we can then
-apply the generator as many times as we like, to achieve better and
-better approximations.</p>
-
-<p>For the von Koch snowflake, the initiator is an equilateral
-triangle with sides oriented in a clockwise direction, as illustrated
-here (the arrows show the direction of orientation, and are not
-considered part of the figure):</p>
-
-<p style="text-align: center">
-<img src="pics/koch-init.gif" width="170" height="160" alt="von Koch snowflake initiator">
-</p>
-
-<p>The generator rule for the von Koch snowflake is this:</p>
-
-<blockquote><p>
-For any oriented line segment, remove the middle third, and replace it
-by two sides with length equal to that of the piece removed (thus
-forming an equilateral triangle).  The two new segments should extend
-to the left of the original segment, when facing in the direction of
-orientation.</p>
-</blockquote>
-
-<p>For example, you would replace the following oriented segment:</p>
-
-<p style="text-align: center">
-<img src="pics/koch-seg1.gif" width="170" height="50" alt="a left-to-right oriented segment ______">
-</p>
-
-<p>by the four segments:</p>
-
-<p style="text-align: center">
-<img src="pics/koch-seg4.gif" width="170" height="74" alt="segment after middle third is replaced __/\__">
-</p>
-
-<p>To generate the fractal corresponding to a given initiator and
-generator, we conceptually generate a sequence of figures, each more
-refined than the last.  The first figure is the initiator itself.  The
-(<var>i</var> + 1)<sup>st</sup> figure is produced by applying the
-generator to each oriented line segment in the
-<var>i</var><sup>th</sup> figure.  For the von Koch snowflake, the
-first figure would be the equilateral triangle, the second a
-six-pointed star, the third a six-pointed star with spikes on each
-point, and so forth.</p>
-
-<p style="text-align: center">
-<img src="pics/koch-level1.gif" width="64" height="64" alt="von Koch Level 1">
-<img src="pics/koch-level2.gif" width="64" height="64" alt="von Koch Level 2">
-<img src="pics/koch-level3.gif" width="64" height="64" alt="von Koch Level 3">
-</p>
-
-<p>Mathematically, the fractal itself is the <em>limit</em> of these
-approximations -- that is to say, it is the figure you get if you
-continue applying the generator repeatedly without bound.  Fractals
-have a number of fascinating mathematical properties:</p>
-
-<ul>
-  <li><p>They are <em>self-similar</em>.  This means, roughly, that no
-  matter how much you "zoom in", the object still looks the same.</p>
-
-  </li><li><p>They are continuous, but nowhere differentiable.</p>
-
-  </li><li><p>Their length is either 0, or infinite.</p>
-
-  </li><li><p>One can define the <span class="def">dimension</span> of a
-  fractal in a natural way, and it turns out that their dimension is
-  not 1 like curves, nor 2 like surfaces, but somewhere in between
-  (which is why they are called "fractals", since they have
-  "fractional dimension").  The dimension of the von Koch snowflake is
-  log(4)/log(3), or approximately 1.2619.</p>
-</li></ul>
-
-<p>For more information about fractals and their mathematical
-properties, we have a <a href="../../handouts/fractals/index.shtml"> short
-handout</a> on the topic.  For even more depth on the subject,
-see:</p>
-
-<p class="ref">
-<span class="title">Fractals: Form, Chance, and
-Dimension</span>, by Benoit B. Mandelbrot<br>
-	published by Freeman Press, 1977.
-</p>
-
-<p>In this assignment, you will construct level <var>k</var>
-approximations to fractals.  These are the figures you get by stopping
-the construction described above after <var>k</var> applications of
-the generator.  For example, a level 0 von Koch snowflake consists of
-just an equilateral triangle; a level 1 von Koch snowflake is the
-six-pointed star, etc.  (You might try drawing a couple of successive
-figures by hand, just to check your understanding).</p>
-
-<p>These figures can be created without having to actually generate
-the intermediate figures, by using a recursive strategy for drawing
-each side of the figure.  A level 0 side is just a straight line.  A
-level <var>k</var> side is made up of several level <var>k - 1</var>
-sides.  In the von Koch snowflake, each level <var>k</var> side
-consists of four level <var>k - 1</var> sides (because of the von Koch
-generator rule).</p>
-
-<hr>
-
-<h2><a name="bgcode"></a>Programming Fractals</h2>
-
-<p>Based upon the above description of the von Koch fractal, we can
-write a Racket procedure that draws an approximation of the snowflake
-in a given direction, at a given length, and to a given number of
-levels of replacement, starting from the current location.</p>
-
-<p>To draw the figure at level zero, we simply draw a straight line of
-the specified length in the given direction.  If the level is greater
-than zero, we (recursively) draw four sides at one level less than the
-current level, at one third the original length, in the appropriate
-directions relative to the starting direction.</p>
-
-<pre><code>
-(define side
-  (lambda ((length &lt;real&gt;) (heading &lt;real&gt;) (level &lt;integer&gt;))
-    (if (zero? level)
-        (drawto heading length)
-        (let ((len/3 (/ length 3))
-              (lvl-1 (- level 1)))
-          (side len/3 heading lvl-1)
-          (side len/3 (- heading pi/3) lvl-1)
-          (side len/3 (+ heading pi/3) lvl-1)
-          (side len/3 heading lvl-1)))))
-</code></pre>
-
-<p>The procedure <tt>drawto</tt> is supplied by the graphics library
-defined in <a href="cs230-graphics.scm"><tt>cs230-graphics.scm</tt></a>.
-It draws a line segment by moving the graphics "pen" in the specified
-direction for the specified distance.  The names <tt>pi</tt> and
-<tt>pi/3</tt> are defined as:</p>
-
-<pre><code>
-(define pi (* 4.0 (atan 1.0)))
-(define pi/3 (/ pi 3))
-</code></pre>
-
-<p>Note that <tt>pi/3</tt> is just a name, not a piece of code to
-compute pi divided by 3 (nicely mnemonic names of this kind are one of
-the neat features of a language like Racket).  The file
-<tt>cs230-graphics.scm</tt> also defines the appropriate values for the
-names <tt>pi/2</tt> and <tt>pi/4</tt>.</p>
-
-<p>We can draw the level <var>k</var> snowflake by drawing three level
-<var>k</var> sides oriented at 0 radians, 2 * pi/3 radians, and -2 *
-pi/3 radians:</p>
-
-<pre><code>
-(define snowflake:0
-  (lambda ((length &lt;real&gt;) (level &lt;integer&gt;))
-    (side length 0.0 level)
-    (side length (* 2 pi/3) level)
-    (side length (- (* 2 pi/3)) level)))
-</code></pre>
-
-<dl class="note">
-<dt>Note:</dt>
-
-<dd>The graphics environment we are using specifies direction as an
-angle in radians, not degrees.  Also, this environment defines zero
-radians as horizontal to the right -- positive angles increase
-clockwise, negative angles anti-clockwise, as illustrated here:
-</dd></dl>
-
-<p style="text-align: center">
-	<img src="pics/angles.gif" width="200" height="200" alt="Demonstration of angles"></p>
-
-<p>The file <a href="cs230.ps1.scm"><tt>cs230.ps1.scm</tt></a> contains some code
-to set up the graphics window, plus the procedures from above,
-<tt>side</tt> and <tt>snowflake:0</tt>.  It is these procedures that
-you will use as the basis for this assignment.</p>
-
-<h3>Download Instructions</h3>
-
-<p>Using the links provided save the files <tt><a href="cs230.ps1.scm">cs230.ps1.scm</a></tt> and <tt><a href="cs230-graphics.scm">cs230-graphics.scm</a></tt> into a directory
-on your computer, then open <tt>cs230.ps1.scm</tt> from within DrRacket,
-and click on the <strong>Run</strong> button.
-
-</p><p>If all goes correctly, you should have a window entitled "Graphics"
-pop up on your screen.  You can just move it aside for the time being,
-but this is where your output will be displayed.</p>
-
-<p>Once you have loaded the code, you can test the program by
-evaluating the expression:</p>
-
-<pre><code>
-(snowflake:0 200 3)
-</code></pre>
-
-<p>This draws a level 3 snowflake with sides of length 200 pixels.</p>
-
-<dl class="note">
-<dt>Note:
-
-</dt><dd>If for some reason you have trouble downloading these files,
-please <a href="mailto ??">send e-mail to the
-course staff</a> describing what went wrong.
-
-</dd><dd>These two files need to be in the same directory, or you will get
-an error when you run <tt>cs230.ps1.scm</tt> saying <span class="err">cannot open input file</span>.  DrRacket looks for
-<tt>cs230-graphics.scm</tt> in whatever directory you opened
-<tt>cs230.ps1.scm</tt> from, so make sure they're together!
-</dd></dl>
-
-<hr>
-
-<h2><a name="prob1"></a>Problem 1: Different Initiators &amp;
-Generators</h2>
-
-<p>The snowflake figure is just one of a large family of figures that
-can be drawn using the same general method.  Changing the initiator or
-the generator (or both) can completely change the shape of the
-figure.</p>
-
-<h3>What to Do</h3>
-
-<p><strong>Write a new generator function</strong> called
-<tt>flip-side</tt>, in which the first half of the oriented line
-segment is replaced with the two equal sides of an isoceles right
-triangle extending to the left, and the last half is replaced with the
-two sides of an isoceles right triangle extending to the right.  The
-result is illustrated in this figure:</p>
-
-<p style="text-align: center">
-<img src="pics/flipside.gif" width="400" height="125" alt="Illustration of the flip-side transformation">
-</p>
-
-<p>In the new figure, the middle segment should be considered as a
-single long segment, not two separate segments of equal length (this
-makes a difference in what the procedure does at the next level).</p>
-
-<p><strong>Write a new initiator function</strong> called
-<tt>square-snowflake:1</tt> that is based on a square instead of a
-triangle, and uses <tt>flip-side</tt> as a generator instead of the
-original <tt>side</tt> procedure given in <tt>cs230.ps1.scm</tt>.  Try out
-your new initiator and see what kind of image it generates.  Your
-square initiator should be oriented thus:</p>
-
-<p style="text-align: center">
-<img src="pics/koch-square.gif" width="160" height="160" alt="Square initiator, clockwise from top left">
-</p>
-
-<h3>What to Turn In</h3>
-
-<p>For Problem 1, please submit a listing of the Racket code for the
-new functions <tt>flip-side</tt> and <tt>square-snowflake:1</tt> you
-wrote.  For output, please print the snowflake generated by the
-following call:</p>
-
-<pre><code>
-(square-snowflake:1 150 3)
-</code></pre>
-
-<p>Hints for printing the contents of the graphics window can be
-found <a href="../../doc/print-graphics.html">here</a>.</p>
-
-<hr>
-
-<h2><a name="prob2"></a>Problem 2: Generalizing the System</h2>
-
-<p>This problem deals with functional abstraction, and the use of
-functions as parameters.</p>
-
-<p>In the initiator given to you (<tt>snowflake:0</tt>) and in the
-initiator you wrote for Problem 1 (<tt>square-snowflake:1</tt>), the
-shape of the object is "hard-coded".  But it makes sense that you
-could define fractals using <em>any</em> combination of generator and
-initiator.  For instance, we ought to be able to use the
-<tt>square-snowflake:1</tt> initiator with the original von Koch
-generator function.  To make this work, we need some general way to
-glue together a generator and an initiator so that we can try out
-different combinations.</p>
-
-<p>One idea is to <span class="def">parameterize</span> the initiator
-with a generator.  In other words, we could modify our initiator
-functions so that they take the generator as an argument.</p>
-
-<h3>What to Do</h3>
-
-<p><strong>Copy the definitions</strong> of <tt>snowflake:0</tt> and
-<tt>square-snowflake:1</tt> that we gave you in <a href="cs230.ps1.scm"><tt>cs230.ps1.scm</tt></a>, <strong>and modify these
-copies</strong> to create new functions named <tt>snowflake:2</tt> and
-<tt>square-snowflake:2</tt> that take a generator as an additional
-argument, and invoke this generator, instead of a hard-wired one.
-(The type of a function in Swindle is <tt>&lt;function&gt;</tt>).</p>
-
-<p>Try out all four possible combinations of initiators and
-generators:</p>
-
-<pre><code>
-<span class="comment">;; van Koch initiator with van Koch generator</span>
-(snowflake:2 200 3 side)
-
-<span class="comment">;; van Koch initiator with flip-side generator</span>
-(snowflake:2 150 3 flip-side)
-
-<span class="comment">;; square initiator with van Koch generator</span>
-(square-snowflake:2 200 3 side)
-
-<span class="comment">;; square initiator with flip-side generator</span>
-(square-snowflake:2 150 3 flip-side)
-</code></pre>
-
-<p>The first expression of these four should give you the same figure
-as the original <tt>snowflake:0</tt> code did.</p>
-
-<h3>What to Turn In</h3>
-
-<p>For Problem 2, please submit a listing of the procedures
-<tt>snowflake:2</tt> and <tt>square-snowflake:2</tt>, as well as a
-printout of all four generated snowflakes.  Make sure each of the
-printouts is properly labelled.</p>
-
-<hr>
-
-<h2><a name="prob3"></a>Problem 3: Inverting the Generator</h2>
-
-<p>This problem further examines the use of functions as
-parameters.</p>
-
-<p>There is no reason why the generator should stay the same all the
-time, even during the generation of a particular figure.  Interesting
-designs can be obtained by "inverting" the generator on some levels of
-the drawing process.</p>
-
-<p>By "inverting" the generator, we mean that when the original
-generator turns left, the inverted generator should turn right; when
-the original generator turns right, the inverted generator should turn
-left.  Note that inversion affects only the <em>direction of
-turns</em>, and not the orientation of the underlying line.  This is
-illustrated by the following figure -- the line still goes
-left-to-right, but the turns are all reversed:</p>
-
-<p style="text-align: center">
-<img src="pics/inversion.gif" width="340" height="74" alt="Illustration of the effect of inversion">
-</p>
-
-<p>We can easily invert an arbitrary generator by changing the signs
-of the angles that we add to the original heading.  The decision
-whether to use a regular or inverted generator could be a function of
-the level -- for example, we might decide to invert the generator when
-the level is an odd number, and not to invert when the level is an
-even number.  Alternatively, we might decide to invert on every third
-level, or we might decide not to invert at all.</p>
-
-<p>In order to support an arbitrary inversion strategy, we need to
-pass an additional parameter <tt>inverter</tt> to the initiator, which
-forwards it along to the generator function.  This <tt>inverter</tt>
-should be a function, and the generator will actually <em>call</em>
-the inverter function, passing it the current level as a parameter.
-The inverter function will return -1 if the direction <em>should</em>
-be inverted, and 1 if it should not.</p>
-
-<h3>What to Do</h3>
-
-<p><strong>Copy and modify the functions</strong> <tt>snowflake:2</tt>
-and <tt>side</tt> to obtain new functions named <tt>snowflake-inv</tt>
-and <tt>side-inv</tt> which have an added parameter called
-<tt>inverter</tt>, of the appropriate type, and implement the changes
-described above.  To test your code, evaluate this expression:</p>
-
-<pre><code>
-(snowflake-inv 100 3 side-inv 
-               (lambda ((level &lt;integer&gt;)) 1))
-</code></pre>
-
-<p>This should produce the same figure as the original
-<tt>snowflake</tt> code from the assignment.</p>
-
-<h3>What to Turn In</h3>
-
-<p>For Problem 3, please submit listings of the <tt>snowflake-inv</tt>
-and <tt>side-inv</tt> procedures, along with a printout of the
-snowflakes generated by the following code:</p>
-
-<pre><code>
-(snowflake-inv 150 3 side-inv
-               (lambda ((level &lt;integer&gt;)) 
-	         (if (odd? level) 1 -1)))
-
-(snowflake-inv 150 3 side-inv
-               (lambda ((level &lt;integer&gt;)) 
-	         (if (even? level) 1 -1)))
-</code></pre>
-
-<hr>
-
-<h2><a name="prob4"></a>Problem 4: Calculating the Length of the
-Snowflake Figure</h2>
-
-<p>Now, instead of drawing a snowflake figure, suppose we would
-like to compute the total length of all the line segments that
-would be drawn, if we were to actually generate the figure.  We
-can do this using the same recursive structure that we employed
-in the previous problems, but this time we won't be drawing
-anything.</p>
-
-<h3>What to Do</h3>
-
-<p><strong>Write two new procedures</strong> called
-<tt>side-length</tt> and <tt>snowflake-length</tt>.  These procedures
-should take the same number and types of arguments as the
-<tt>side</tt> and <tt>snowflake</tt> procedures you wrote for <a href="#prob3">Problem 3</a>, but instead of drawing,
-<tt>snowflake-length</tt> should return the total length of the figure
-that <tt>snowflake</tt> would have drawn, i.e., the total distance
-moved by the pen, given the same arguments.</p>
-
-<p>The overall recursive structure of the two new procedures should be
-the same as the originals, except that they should return the
-<em>length</em> of the part of the figure which would have been drawn.
-You do not need to write <tt>flip-side-length</tt> or
-<tt>square-snowflake-length</tt>; the principle would be the same in
-those cases.</p>
-
-<dl class="note">
-<dt>Note:</dt>
-
-<dd>You can check the accuracy of your results by noticing that the
-total length of the figure increases as a geometric series:  Each
-time the generator level is increased by one, the total length
-increases by a constant factor.  Don't just make your function compute
-this directly, however; we want you to use the recursive structure to
-compute the length in your solution.  This trick merely gives you a
-way to make sure you're getting the right numbers out.
-</dd></dl>
-
-<h3>What to Turn In</h3>
-
-<p>For Problem 4, please hand in a listing of the procedures
-<tt>side-length</tt> and <tt>snowflake-length</tt>, as well as a
-printout of the output generated by the following code:</p>
-
-<pre><code>
-(snowflake-length 100.0 3 side-length 
-                  (lambda ((level &lt;integer&gt;)) 1))
-</code></pre>
-
-<hr>
-
-<h2><a name="contest"></a>Awesome Fractal Contest</h2>
-<h4>(optional)</h4>
-
-<p>If you experimented at all during the course of this assignment,
-you probably generated some pretty interesting fractals.  If you wish,
-you may select one or two of your best designs, and enter them in the
-<span class="cool">CS 230 Awesome Fractal Contest</span>.</p>
-
-<p>Submit the code which generates your cool fractal(s), as well as a
-printout of the result.  (If you do choose to submit any entries,
-please be sure to submit your code electronically as well as in
-hard-copy format!  We will want to run your code).</p>
-
-<p>To be fair (to the judges, as well as your fellow students), please
-do not submit more than two fractals for the Awesome Fractal Contest.
-Designs will be judged by the CS 230 course staff, and the winner will
-receive a prize.</p>
-
-<table style="width: 100%; text-align: center;">
-<tbody><tr>
-  <td>
-  <img src="pics/fern.gif" width="125" height="177" alt="Picture of a fractal fern">
-  </td>
-  <td>
-  <img src="pics/fern.gif" width="125" height="177" alt="Picture of a fractal fern">
-  </td>
-  <td>
-  <img src="pics/fern.gif" width="125" height="177" alt="Picture of a fractal fern">
-  </td>
-</tr>
-</tbody></table>
-
-<hr>
-<!-- #include virtual="../../ssi/pset-nav.ssi" -->
-<hr>
-<!-- #include virtual="../../ssi/dept-foot.ssi" -->
-
-
-
-</body></html>«!%)-159Ô_WebResourceResponseYimage/gif_Chttp://www.cs.duke.edu/brd/Teaching/dm/psets/ps1/pics/koch-init.gifO#bplist00ÔefX$versionX$objectsY$archiverT$top † ¯"()012JKLMNOPQRSTUVWXYZ[\_`U$nullİ	
- !R$6S$10R$2R$7R$3S$11R$8V$classR$4R$9R$0R$5R$1€€€ €€€€€Ó#$%&'WNS.base[NS.relative€ €€_Chttp://www.cs.duke.edu/brd/Teaching/dm/psets/ps1/pics/koch-init.gifÒ*+,-Z$classnameX$classesUNSURL¢./UNSURLXNSObject#A¸‰õ³ÿÇ.ÈÓ345?IWNS.keysZNS.objects©6789:;<=>€	€
-€€€€€€€©@BCDEFGH€€€€€€€€€€VServer\Content-TypeTEtag]Last-ModifiedTDate]Accept-Ranges^Content-LengthZKeep-AliveZConnectionVApacheYimage/gif_"ca2685-8fa-4ec832f9d5c0d"_Mon, 02 Dec 2013 01:34:50 GMT_Fri, 17 Jan 2014 23:35:15 GMTUbytesT2298_timeout=3, max=100ZKeep-AliveÒ*+]^\NSDictionary¢]/úÒ*+ab_NSHTTPURLResponse£cd/_NSHTTPURLResponse]NSURLResponse_NSKeyedArchiverÑgh_WebResourceResponse€    # - 2 7 X ^ y | € ƒ † ‰   — š    £ ¦ ¨ ª ¬ ® ° ² ´ ¶ ¸ º ¼ ¾ Å Í Ù Û İ ß%*5>DGMV_ahp{…‡‰‹‘“•—¡£¥§©«­¯±³µ¼ÉÎÜáïş	%Bb‚ˆ¢­²¿ÂÅÊŞâö/             i              1OúGIF89aª   Õ  ×FFàppmggÛYYì©©ùãã¶³³wqqúëëëêêÑ**ÕÓÓÔ77÷ÛÛİccôÍÍóÅÅæYRR‰ƒƒï³³©¥¥ä‚‚ğ»»âyyÎ,##C;;b[[6--%JBBöööRJJË™™êŸŸÌúúúşúúòññüòòäããı÷÷ËÈÈáßßöÔÔ°¬¬é››Ï""ÜÚÚ||ÆÃÃ=44™”””è––rllÀ½½£ÿÿÿ!ù     ,    ª    ÿÀŸpH,È¤rÉl:ŸĞ¨tJ­Z¯Ø¬vËíz¿à°xL.›Ïè´zÍn»ßğ¸|N¯Û¥-LáÎï7 3 0\0&ˆ‰Š‹Œ‘’“”•– $™™ 2+V;š£¤¥¦§¨©ª«¬­®¯­ S·¸¹º»¼½¾¿ÀÁÂÃÄÅ
-¤;´}ÎiœÏÖky{×ÛÜİŞßàáâã}%çèéêëìíîïğñòóôõò.R!"#üışÿ 
-H° Áƒ*<È!D”FH@±¢Å‹3jÜÈ±£Ç CŠÜ(a„…R&Œà@®¥#&LA±aD—ã*ŒØ€‚ŠÿâüâÃV@ÄúM¥ˆ+,X`Á”©°ğÑ¡ê¶#xdI`c>¯ÎnŒ°2K8Ğ:Ã1"ÇFø{ÇÇ=·ô ª‚/F{É¡E•’5Ï©!ÑŒš-e„†Ô’á¼JÃ¦N8r rh7P ¡À± ÕŠ ¡øõšÁ
-IÁ€Äê'fh#Râo`ßgğ(aD	 Q
-` y]»ĞÏ¼[dÅ¤`¢ˆZÂÃQQöÆb¦X'ÀHI±ò±UWE4pÂ	ËAÀ	™ìPÄUd QMeÄ $dP†™`PÿeOMøÅ>‘	3p6šœ›E%b?e	2X±ƒ™( N<Í¨M#T`‹´g‡ €m/ ƒYè°’+ãáHCÂl)„kµE%d™eD×eÑ€ Œ À™UÔyghpB!Yhè ~F°`ƒgá	…°eD üm±GŸè¡KŠB“LEÄ™™lbW‘7eÚD;=7Äi_´pÌqDü´P¦&#REÌV,* âJqZ+*`qÆ‰ÉFDeUÃz¨„Dˆ"jqÎYÄ€Ñ€D  A¥c@š_i&Úÿ-™an”¦WÄ[˜vûÃwF¨-¡!İ^İúØ…_á*	&Qc|¦î†+'¦ˆ†®¿
-Û°”Iplq9¦±lgŸÕ:š¥aÂvJ¢‘m‚B´¦±©%€¥–l¼«[b™Ç°Ê†¸ä2çÒQÇç€²Áf’£Òe4•ã©*Ä ı¹‘Â1	»·ÖÎÒ7‚}’ğéû7‚ÌBº|«q|\ÄÈÔX!´Dè
-å—í;ˆ3’xì«tØL„Ã.¼f›t -/@J‘Fô‹s,ò0M•õ!8ÈfM»f†–n¾²<GÙEè	ë3Û&>8ÿíkÎÒ=´U\GŞXzeh›nŒ£5ŸAªd¨i2ÊÖ(nDóBM¥‘%	b>#
-ÓEËW±Gô|î5¡7Û¨îC¡ İÍl·ÎZßAõ7ÖNÄéL!<Õmè+xEà\U2·6 Éût"ç9®Wwë†ôŠ`¸–®ƒ8¾w9!ø­%;B¿Æ¬Á3 Í8FV²p‹ráà]ıˆ ¶qÄìGÿŒà5°Cg–INh„æìEk ìpÁ(~Ã‰ã¯˜bîá=\{FçÂ¡X|Døa7zX„3–Ğ%-4¹Cjÿï<İcŠ}Ç·mœ°ğ™\†x3Y£ƒDˆßŸÃÄ"èä‰}€Ü0T5Ãò|D` 3h„Í0]ÌãÈ m¡q£·ìÔØ¡Wo”Km÷>;äÎ!OÄ|G>;ïp×‚%ı…½:P~7P#‰pL9,ïQ$p€ˆ.y„_ÆáRGX™ˆ¶'Ê[ÂÁ}q[UÁft24Á•n@çX'¢Yş¯,êZ)‡SÑÍÈ“ü'Û É"OÃUM(¨†Æh¢‘"+Â¬áƒ€$Ìw„?¢¡:CñÄMõÅ0s$X%3UÎ7²Ñj4‘Øòy¦`ÂAÿº©ÏÀh¼ŸM„Kõ¼`ÅWÒ&–Š
-(z*,Î,YöZ¨(†İô¦=f·(j6´…á¤Cˆ	p­íQ@¤	CõM{ùÔœBH!.6½™õ/%¢QÆDÁmoN‹`Á.üëìÌ«„šÉºtaŸÃÁš`¶È"Ì¦$‚åUÄ!ZàÖAÇ•PÁzUZµ„Êú€(QÊIoìåÄ‡ºlÔ´â„)®gÈ*4VD ,l‡@Àé¥ª
-Ï,ï>¹["ìÏÖLÉğŠ€,›7‘òsìh¥à¾x
-ád
- jq£zu:Á»?ØŸK„ƒ}]ğŒÿÂc‡À]ò"µF@lú	İ­º7	qh‘`P#Jš÷EBo9Ü&¢B6Œ„ãÁ¢IÀè4„W#³±D˜Û Î0 W¾³ğV¸-×$!¥CØ°ƒÎZØ¼D”)hzÊ9€="~ïO0$  _|2˜ã»:Ğ_yyšĞ ™bM(§ÈI0˜:§6PN\…²ç"UÕ"`UÚÉÄxµÌ'?%m!ıÁX7N2'ÄDPëØZcLºùW#Áy‡3»¡Û!òsµc¾ş%yØš|4h& ’t)	yÖ–åF‡¸cê‡u<fK!tM6„{úÔ¨NµªWÍêV»úÕ°G  ;Ô_Chttp://www.cs.duke.edu/brd/Teaching/dm/psets/ps1/pics/koch-seg1.gifO!bplist00ÔefX$versionX$objectsY$archiverT$top † ¯"()012JKLMNOPQRSTUVWXYZ[\_`U$nullİ	
- !R$6S$10R$2R$7R$3S$11R$8V$classR$4R$9R$0R$5R$1€€€ €€€€€Ó#$%&'WNS.base[NS.relative€ €€_Chttp://www.cs.duke.edu/brd/Teaching/dm/psets/ps1/pics/koch-seg1.gifÒ*+,-Z$classnameX$classesUNSURL¢./UNSURLXNSObject#A¸‰õ³ÔGåÈÓ345?IWNS.keysZNS.objects©6789:;<=>€	€
-€€€€€€€©@BCDEFGH€€€€€€€€€€VServer\Content-TypeTEtag]Last-ModifiedTDate]Accept-Ranges^Content-LengthZKeep-AliveZConnectionVApacheYimage/gif_"ca2689-1fc-4ec832f9e0fbf"_Mon, 02 Dec 2013 01:34:50 GMT_Fri, 17 Jan 2014 23:35:15 GMTUbytesS508_timeout=3, max=99ZKeep-AliveÒ*+]^\NSDictionary¢]/üÒ*+ab_NSHTTPURLResponse£cd/_NSHTTPURLResponse]NSURLResponse_NSKeyedArchiverÑgh_WebResourceResponse€    # - 2 7 X ^ y | € ƒ † ‰   — š    £ ¦ ¨ ª ¬ ® ° ² ´ ¶ ¸ º ¼ ¾ Å Í Ù Û İ ß%*5>DGMV_ahp{…‡‰‹‘“•—¡£¥§©«­¯±³µ¼ÉÎÜáïş	%Bb‚ˆŒ «°½ÀÃÈÜàô-             i              /OüGIF89aª 2 Õ  ËàppêŸŸØMMøááë¤¤×HHöÔÔ÷ÜÜßkkı÷÷ğººç’’ûíí¹¹¹Ô;;Ğ&&è——õÏÏÎòÂÂáttÕ@@Ï""tttì¨¨ñ½½ÑÑÑé››¬¬¬úéé‹‹‹üòòóÇÇâxxÇÇÇ   ™™™fffÿÿÿ                                                                        !ù     ,    ª 2  ÿÀ“pH,È¤rÉl:ŸĞ¨tJ­Z¯Ø¬vËíz¿à°xL.›Ïè´zÍn»ßğ¸|N¯Ûïø¼~Ïïûÿ€‚ƒ„…†‡ˆ~
-‰U"bš›œŸ ¡¢£¤¥¦§¢ ««	! \¬µ¶·¸¹º»¼½¾¿ÀÁ¹YÉÊËÌÍÎÏĞÑÒÓÔÕÖÑ¶	àF‘áéG‹êîïğs%ôõö÷øùúûüışÿ 
-8Ê*\È°¡Ã‡#JœH±¢E‹ 80Á±£Ç CŠI²¤É“(SªTÙ!Ë—0cÊœI³¦Í›8sêÜÉ³§ÏŸ@ƒ
-J´¨Ñ£H“*]Ê´©Ó§P£Jõ ;Ô_Chttp://www.cs.duke.edu/brd/Teaching/dm/psets/ps1/pics/koch-seg4.gifO#bplist00ÔefX$versionX$objectsY$archiverT$top † ¯"()012JKLMNOPQRSTUVWXYZ[\_`U$nullİ	
- !R$6S$10R$2R$7R$3S$11R$8V$classR$4R$9R$0R$5R$1€€€ €€€€€Ó#$%&'WNS.base[NS.relative€ €€_Chttp://www.cs.duke.edu/brd/Teaching/dm/psets/ps1/pics/koch-seg4.gifÒ*+,-Z$classnameX$classesUNSURL¢./UNSURLXNSObject#A¸‰õ³Û'şÈÓ345?IWNS.keysZNS.objects©6789:;<=>€	€
-€€€€€€€©@BCDEFGH€€€€€€€€€€VServer\Content-TypeTEtag]Last-ModifiedTDate]Accept-Ranges^Content-LengthZKeep-AliveZConnectionVApacheYimage/gif_"ca268a-4dc-4ec832f9e2b1a"_Mon, 02 Dec 2013 01:34:50 GMT_Fri, 17 Jan 2014 23:35:15 GMTUbytesT1244_timeout=3, max=100ZKeep-AliveÒ*+]^\NSDictionary¢]/ÜÒ*+ab_NSHTTPURLResponse£cd/_NSHTTPURLResponse]NSURLResponse_NSKeyedArchiverÑgh_WebResourceResponse€    # - 2 7 X ^ y | € ƒ † ‰   — š    £ ¦ ¨ ª ¬ ® ° ² ´ ¶ ¸ º ¼ ¾ Å Í Ù Û İ ß%*5>DGMV_ahp{…‡‰‹‘“•—¡£¥§©«­¯±³µ¼ÉÎÜáïş	%Bb‚ˆ¢­²¿ÂÅÊŞâö/             i              1OÜGIF89aª J Õ  Ô77yyy&&&óÅÅJJJ³³³êêêÑ))ğ»»ÔÔÔÅÅÅì©©İİİ777«««†††äƒƒßkkî³³’’’ã{{ÖBBÎ¼¼¼æŒŒlllÜ]]
-
-
-UUUÙSSaaaËfff™™™êŸŸàppüòòúúúñññÌşúúØMMãããõÏÏûííü÷÷×HHöÔÔáttöØØøááùååë¤¤Ï""ÌÌÌôËË÷ÜÜç’’é™™úéé   ÿÿÿ!ù     ,    ª J  ÿÀŸpH,È¤rÉl:ŸĞ¨tJ­Z¯Ø¬vËíz¿à°xL.›Ïè´zÍn»».éM¯/KEY(0¬Y@v‚ƒ3D'>>
-C; )ƒ’n0 E>™C)  <“¡i-D>C =¢´c) 0D>|>&C sµÇ^ –C
-À'B>}9ÈØY ¦CšC	>C‘ÙêR(  ,C2>ÂC>!œ#ëşN3n¼cö‘EV¤Jğ
-Äÿ""iáé]·˜yàCã°bCròğî]¼
-904b¡NŠŒÃCÅ÷|dH2¯ŞÿfFÌ`@, İpŒ+—D“ˆ!.€è'ô.®ıĞDM‰3Ğ„Hpˆ§ªº ¸èæ€=%Òø!Ãl¶Rüˆg‚•+&¨8¬¢
-™vi#øƒcƒ'|t ´BâZ-şb€ƒO2R"ïeQ1@x ùC”	›†Œ=Pö´ Â(	Ij0”¾­ˆ¨ Q×¶ bÆ¢M›òË§†ucÔB!¿ÀR‘ÖU/¦Ó¹:¸Œ*JÉ)B¯x6³kÃ~lßÎ!hi¿Wƒ„!¢]‘ÒJB¼ û¥ÁÃ2é`$Yy$Ñ%hF	 0D`dÑÿ©­VBm~ñİjCğ"W=½Å=¸W¢4¦‹_…¥…SDØÖ*Ìø1ñM<óC
-àBÌuBn‘C,PşĞ¢q	‘Ã¸QnaàEz˜oh•ÄX˜UÄ7DFaD6™Û˜Ä¦L5Ä€aœàÙh?|÷‚wR±  Ú7Æ|D“Vƒ…>Q‚@
-‘Sa ÷×.à‚‘FTŞ,GFsoQÂwº€ OøÏm9GWDÔp 
-$bá*¬Øè Â*P`ÃH” Aq?hzÆ¥Dä`U[K¬±ÈfÃÜvëí·à†Ë­%=ôZù„ci(J¤±­¸ô†KnIœ›®u–ëï¿ °
-ÌRDgŸ¥Á' K§ÀGü/ÁG 	g¬ñÆwŒ±Tå /DH´¶œE,ÄÅ·Ü1Èj|›
-¼ƒˆ)Á›`ktÂÖ|sÎ‚ü:wm\ù…ÑÓeç‚¬<•M"TmõÕXg­õÖ\oÈyn$ÉÁ]—möÙXº‘"l·íöÛpÇ-÷Üô½!ÍÜxç­÷Û+qA€.øà„nøá‡ÛaÀˆ7îøã„oêä”Wnùå˜g®ùæœwîùç ‡.úè¤—núé¨§®úê¬·îºA  ;Ô _Ehttp://www.cs.duke.edu/brd/Teaching/dm/psets/ps1/pics/koch-level1.gifO$bplist00ÔefX$versionX$objectsY$archiverT$top † ¯"()012JKLMNOPQRSTUVWXYZ[\_`U$nullİ	
- !R$6S$10R$2R$7R$3S$11R$8V$classR$4R$9R$0R$5R$1€€€ €€€€€Ó#$%&'WNS.base[NS.relative€ €€_Ehttp://www.cs.duke.edu/brd/Teaching/dm/psets/ps1/pics/koch-level1.gifÒ*+,-Z$classnameX$classesUNSURL¢./UNSURLXNSObject#A¸‰õ³ÿÃÈÓ345?IWNS.keysZNS.objects©6789:;<=>€	€
-€€€€€€€©@BCDEFGH€€€€€€€€€€VServer\Content-TypeTEtag]Last-ModifiedTDate]Accept-Ranges^Content-LengthZKeep-AliveZConnectionVApacheYimage/gif_"ca2686-233-4ec832f9d7b4b"_Mon, 02 Dec 2013 01:34:50 GMT_Fri, 17 Jan 2014 23:35:15 GMTUbytesS563_timeout=3, max=100ZKeep-AliveÒ*+]^\NSDictionary¢]/3Ò*+ab_NSHTTPURLResponse£cd/_NSHTTPURLResponse]NSURLResponse_NSKeyedArchiverÑgh_WebResourceResponse€    # - 2 7 X ^ y | € ƒ † ‰   — š    £ ¦ ¨ ª ¬ ® ° ² ´ ¶ ¸ º ¼ ¾ Å Í Ù Û İ ß',7@FIOXacjr}‡‰‹‘“•—™£¥§©«­¯±³µ·¾ËĞŞãñ 'Dd„Š£®³ÀÃÆËßã÷0             i              2O3GIF89a@ @ Ä  OOOÊÊÊ```>>>ÁÁÁ÷÷÷éééµµµ±±±şşş|||ŒŒŒ444ğğğ{{{¿¿¿€€€ìììòòòóóóøøø¹¹¹ñññîîîrrrÅÅÅ   ÿÿÿ!ù     ,    @ @  ÿà'dihª®lë¾pl&Ô%ßøh’ÿ1€²° «‰@Y"Ÿ¦ÁS`L'Ğìáü(	Úg%0Š®ác“BúÚÒ¸¹Rúà·©Â´Ğñ0
-`'k€/c(‰f‡+†)\ +r~*RXYŸ ¡¢z,_¢©¢d¯°±²„,S²·°+	¯ÂÃÄÃ.ÅÌÂK,B•(e-}Ö#v/‘İ^ƒo-‰‹İšœ/‚´•“y›Ö}0n•ß8ù€÷8Û€ê€„KÈ98ô(€@ CBØ<á±!Ì¤!)ÀĞ¡ $@0Í%n9
-°Âx£ ƒ9X¦i—ãß#47öêg\7.pÎ#SÏÔ q"T²()é
-¥âx¦8°i‰=X©hò A3f2¸Èàõ+±0jXá  \p³­7î‚µ*<©ÚµP½€µ>qjâ¤ÕRK”:\§Š/ŒùÌ9!4ò™4-—€)‚³æ™EÈüüaq"”¤Eº‰“S›³ ÚÙ'Å¢2o$şş9 ;Ô"#$_Ehttp://www.cs.duke.edu/brd/Teaching/dm/psets/ps1/pics/koch-level2.gifO$bplist00ÔefX$versionX$objectsY$archiverT$top † ¯"()012JKLMNOPQRSTUVWXYZ[\_`U$nullİ	
- !R$6S$10R$2R$7R$3S$11R$8V$classR$4R$9R$0R$5R$1€€€ €€€€€Ó#$%&'WNS.base[NS.relative€ €€_Ehttp://www.cs.duke.edu/brd/Teaching/dm/psets/ps1/pics/koch-level2.gifÒ*+,-Z$classnameX$classesUNSURL¢./UNSURLXNSObject#A¸‰õ³Û¸_ÈÓ345?IWNS.keysZNS.objects©6789:;<=>€	€
-€€€€€€€©@BCDEFGH€€€€€€€€€€VServer\Content-TypeTEtag]Last-ModifiedTDate]Accept-Ranges^Content-LengthZKeep-AliveZConnectionVApacheYimage/gif_"ca2687-353-4ec832f9d96a7"_Mon, 02 Dec 2013 01:34:50 GMT_Fri, 17 Jan 2014 23:35:15 GMTUbytesS851_timeout=3, max=100ZKeep-AliveÒ*+]^\NSDictionary¢]/SÒ*+ab_NSHTTPURLResponse£cd/_NSHTTPURLResponse]NSURLResponse_NSKeyedArchiverÑgh_WebResourceResponse€    # - 2 7 X ^ y | € ƒ † ‰   — š    £ ¦ ¨ ª ¬ ® ° ² ´ ¶ ¸ º ¼ ¾ Å Í Ù Û İ ß',7@FIOXacjr}‡‰‹‘“•—™£¥§©«­¯±³µ·¾ËĞŞãñ 'Dd„Š£®³ÀÃÆËßã÷0             i              2OSGIF89a@ @ Ä  555HHHÉÉÉÜÜÜ§§§ğğğ%%%ùùùıııxxxaaajjjSSSööö´´´„„„•••ííí±±±ZZZ¹¹¹æææóóóĞĞĞÂÂÂ×××   ÿÿÿ!ù     ,    @ @  ÿà'dihª®lë¾pl^‘&ßøÈU^”ÿ°GÀãYØ€HUÄcIxÉ(âA¥^*Íà¹T©ˆ¨¬°X`y‚èB<—âØÖ`Ø¤„Á<â1l,]€1\*ta‡'(W’‘(–b
-‹'<((
-b•&~([ $C·@C&C*®&¿I œÎ(‰»¸fŠ@¹–ßá+®æãê¯0eÜEöø+Øö÷}øW† 8*iÀĞ1,0løEÄ‰¸˜ñ×,‰*€Ô"Ã¯-Ôÿ!	²	/ÆÁd‰BKğĞ<á$˜‹Dî<1@Y6İ=‘
- F-=Áe› h…0rç€­(;’Â	‘³¦:ğëìY„)2˜;W¬š<( K×š‹¢ºğKğ%Ô&9PÈGpÅ0%¦CdÅhz4‰]’yW!¬8
-[†q|fZ†ƒ  ÈVVZÌiÙ `ÈÌ”= îît à÷½•* ¢œj‚‹ğI™—PØÀo
-¨©—ö`ÕENé"œˆv!ü› ^@C.Ë™şœ›±}yBW:è'«A¿ÿ¼¥Ğß 0`ŒóQĞYnÀ#\4ø ØH(B…J•ÂtØáá`åákà° ÏˆCÀtâˆÔ–‚3ëu'B5 u3ÂÛØØ‹2ÀãAE'ÃL	É,E+D6£,œP/"A”?Á
-¢BÙ	#Æğ•@Im¹dR“Œ4M ã	ÎhhN(¥Â8	XÇ\<ìÁ@RM Ç¦(yg=gğ “….`€ SMñ4pğ@4|ñ€óAäŠeÚ‚.¸é©
-;ô0ê„zª0ºªt!  ;Ô&'(_Ehttp://www.cs.duke.edu/brd/Teaching/dm/psets/ps1/pics/koch-level3.gifO$bplist00ÔefX$versionX$objectsY$archiverT$top † ¯"()012JKLMNOPQRSTUVWXYZ[\_`U$nullİ	
- !R$6S$10R$2R$7R$3S$11R$8V$classR$4R$9R$0R$5R$1€€€ €€€€€Ó#$%&'WNS.base[NS.relative€ €€_Ehttp://www.cs.duke.edu/brd/Teaching/dm/psets/ps1/pics/koch-level3.gifÒ*+,-Z$classnameX$classesUNSURL¢./UNSURLXNSObject#A¸‰õ³àx¸ÈÓ345?IWNS.keysZNS.objects©6789:;<=>€	€
-€€€€€€€©@BCDEFGH€€€€€€€€€€VServer\Content-TypeTEtag]Last-ModifiedTDate]Accept-Ranges^Content-LengthZKeep-AliveZConnectionVApacheYimage/gif_"ca2688-3eb-4ec832f9db9cb"_Mon, 02 Dec 2013 01:34:50 GMT_Fri, 17 Jan 2014 23:35:15 GMTUbytesT1003_timeout=3, max=98ZKeep-AliveÒ*+]^\NSDictionary¢]/ëÒ*+ab_NSHTTPURLResponse£cd/_NSHTTPURLResponse]NSURLResponse_NSKeyedArchiverÑgh_WebResourceResponse€    # - 2 7 X ^ y | € ƒ † ‰   — š    £ ¦ ¨ ª ¬ ® ° ² ´ ¶ ¸ º ¼ ¾ Å Í Ù Û İ ß',7@FIOXacjr}‡‰‹‘“•—™£¥§©«­¯±³µ·¾ËĞŞãñ 'Dd„Š£®³ÀÃÆËßã÷0             i              2OëGIF89a@ @ Ä  ’’’DDD¾¾¾555ÚÚÚ«««´´´ÔÔÔÉÉÉñññııı{{{åååddd&&&ìììrrrjjjúúú[[[ƒƒƒôôôøøøŒŒŒšššöööQQQêêê
-
-
-   ÿÿÿ!ù     ,    @ @  ÿà'dihª®lë¾pl„lßb2-Ş2%¸ +àé,:py>„áSèÔ ¦ğb9tŒøÃx,Êƒå¢µ<J )	Š|Ú–m
-#
-ƒ}6-1q+˜”&	…%)O%
-@mw(u((·B#£¦¨¬#aÃ7  _ ‰^)i¯ Yk1“©5
-@r-}Hğ Á
-p d€’
-&@R á®m¶Èór‚4ÜäšõáÂ –¤ÿd[‘@c…^"Œ¨åABÊ‡-6 1 Áƒ®d¨ 'ËŠ 'b3"J!$r!Â`‰¸0hWƒ¡T õ#C‡_(Zv0•l
-¥<TX¡ ê 	nU|`áb
-
-”Ë{N¤¦)Zv#¬"¨<2V€ÙŠ’'£ˆ0ÀoÚ/4À‡0Ïè™«â† $èLxÂl	b/@«bAjä]xŠÂ‚+¹I8EBƒÇôl  5 mVu"ÀŠ§(¼oğHVN_!Ü¼“òØ¦­Ür¤Rš®DŠ0 ¼AJ+© ØKEàÅnUÿcE…X^\YõÁWa¥0–f¼œÅR:Tˆáq±ö—†áè—Àƒİuâ¶p ³iób ÙíÆh7Úñ€õ¡Ğ@f=~°À$;Ú"i3UĞ@HĞ I-d0Ú4P_§¥¶Ú
-®Á&mPğ€0q	T³I5‰`Û]¹
-¾} \>@ÀC 1Èˆ"Y´©3Æ!§Bû)°€(0-LôD¤8PA!eÌÃâàó@:ÂQQN(èÄI28ğÀ4P)o p(3Mp€Û™ßøõÊÜpŞÄ"SÂô—B~\à™ à¡h'o$±‚@)B GZäBÇ%À!†@À–z£%Ì–ˆ´*ïªE^õ èìWâs p¬·P‡utWƒ H<ÂyÄ$À“ğåğ	, ‡Èz1
-ù1
-lòÉ#„  ;Ô*+,_@http://www.cs.duke.edu/brd/Teaching/dm/psets/ps1/pics/angles.gifO bplist00ÔefX$versionX$objectsY$archiverT$top † ¯"()012JKLMNOPQRSTUVWXYZ[\_`U$nullİ	
- !R$6S$10R$2R$7R$3S$11R$8V$classR$4R$9R$0R$5R$1€€€ €€€€€Ó#$%&'WNS.base[NS.relative€ €€_@http://www.cs.duke.edu/brd/Teaching/dm/psets/ps1/pics/angles.gifÒ*+,-Z$classnameX$classesUNSURL¢./UNSURLXNSObject#A¸‰õ³ä—ÈÈÓ345?IWNS.keysZNS.objects©6789:;<=>€	€
-€€€€€€€©@BCDEFGH€€€€€€€€€€VServer\Content-TypeTEtag]Last-ModifiedTDate]Accept-Ranges^Content-LengthZKeep-AliveZConnectionVApacheYimage/gif_"ca267d-102d-4ec832f9c46bb"_Mon, 02 Dec 2013 01:34:50 GMT_Fri, 17 Jan 2014 23:35:15 GMTUbytesT4141_timeout=3, max=99ZKeep-AliveÒ*+]^\NSDictionary¢]/-Ò*+ab_NSHTTPURLResponse£cd/_NSHTTPURLResponse]NSURLResponse_NSKeyedArchiverÑgh_WebResourceResponse€    # - 2 7 X ^ y | € ƒ † ‰   — š    £ ¦ ¨ ª ¬ ® ° ² ´ ¶ ¸ º ¼ ¾ Å Í Ù Û İ ß"'2;ADJS\^emx‚„†ˆŠŒ’” ¢¤¦¨ª¬®°²¹ÆËÙŞìû"@`€†‹Ÿª¯¼¿ÂÇÛßó,             i              .O-GIF89aÈ È Õ  ÎÎÎÖEEûíí"""Ëfff“““üúúóÈÈÔ99¬¬¬ŠŠŠDDD~~~óóóßßßöØØüòòÔÔÔä††lllåååêŸŸ™™™ë¥¥TTTvvvàppŞhh£££111ÙÙÙÛYYùããd¶¶¶»»»ïïïªªª___Ğ))ÃÃÃÍ¾¾¾Ï""éééÂ™™ÈÈÈIIIâzzğ»»î°°²ŸŸŸ===ç’’è˜˜¯¡¡Í¿¿¶}}   ÿÿÿ!ù     ,    È È  ÿÀŸpH,È¤rÉl:ŸĞ¨tJ­Z¯Ø¬vËíz¿à°xL.›Ïè´zÍn»ßğ¸|N¯Ûïø¼”Ñèû3z‚N(  €ƒD(??™š’šŸ&?> ¦z'>'¤B˜§¯rB(’°¹n>B> «ºÃj Â?£GÄÌnÍĞjÑÔJ~×ŒC Üİİ½CÕåE&èéè®?¿>ïğï D		æøM üııDtĞ‘¯ <<âƒ­‘A2LƒsoI¡C‰9|hå>89@€ ‹enhä`"‰’%v¯p``‚JD$”$ Áÿ=›púá)&–8-5(¢ag6TL:ª”Ñ+'ñ)2cç6"®l’j•U˜W«Øø#bIláD-[¸ÒV9¬ˆ‹ˆ
-T¬©Pr*^¾€Ó;…€"#ä #€€4MKtblH2ÆT2°ıACÂäh IÀbçeĞhL8<FîôrfF¸Øi6 ÒeÈ+Äö™	wb‚í¢KŸşÙw  á%b¼Ì5D˜$ğ™ºt® Ä[Ó:–îd¨Ç¢\''DëßŸá±{+ğ‘q€T Á3ÿÁà Â4à– †1
-<…R'àÿÃ £M(E…`Ö[`bZ"FA¢#”TÑ°ãƒ-Nñbâ)”Eóä˜D-Üğ@à`H$@€€Ã<pC,VA]X  qB†°€€ÀŞzM’p&< làÀ!XQY˜ÀÁ >„hİp€CvÚ5‚,°œ0YP°Â8BxÆƒ ,pAM=È¥FpC
-•¾3À,@Á†Fx <°A©¦pC–F\˜a(XåP*0ĞNì8-0° ° ²I˜è…	Û1F8hg+®J(k„¨¤Âƒ 1ÿBk3^£- ­`A¥Äf .â"AÏšjÁ
-Eô¨…zÁÇX²ÈÃÀWä«Ä
-˜é´ Ä–[D`WÅ`AvçŞ…ÃK ÕíÄÄ0§QDğ@¥ğ$3ñ‚¼Ó¤
-²ÌÄ'ƒ ³57q368ùÏL àá‡ÄùEÑNt@€ïÀ1ÓDd q
-‡A5ë C
-òè¦i³:5e^ ¤Ğ^¿cÔL— CÖ[ƒ1¶áô;2”Àtx`€ÛbÃÍÅÊD`@âjÿê H…£ñ758ØózOì µ	FÀ¶àmÆæ#aˆà!<mÈFQ€ÿ6~ëEX«€”Bº¾÷¡lğ>DÙí&19/}_ÀŞ ,¼ãp_˜)CôMÌboE=sA±€÷àDÁÀ^şXW@E	fn@<G ùoP^çx6…õù ´ƒØ6 ëĞ|S8 †–C…àÉºË‡&†¼8ğn2'Š‚@â€‡d $˜ëÀ.,<`b•cF	ğT€ÎÏ
-VÛ à¡È¯!Ø›T§ BA'éËB}0Ds0ğ‡rØœı²0CX xGéğ·~xGOá%Ô1®ˆôƒÂ€@A.ÀC hß+à(Ç6ŒÿM 
-8c—ÌT h|@Œx í†,úÀºˆ@·R G4J!‡b8 ÚpÀG¼p a»CÑ”0´ O)ÔEğTÂ<M<_!Ã]°D¬CÍh@ |ñ!0ÓaÑl1FLÂ7S†0" “¦ğPf¦’á±‘^xAÎúxŠøR›ÀnšGc2lÃ3›Ì#tE‡fxA·vù	
-à))äLc8¹›`°	*ù@y"•l R{4n‰dâª‡-ÛğØP˜Ø7¡¬aºÁš>  $<„–sÊãàGÍGD OcTáGoƒ!Õ¼!‹ÿàgnğ!™öS	„Ag@ñtH -xQŒx"‡Ÿ>â<êGÅÓ9Ğt ›DD`Ó›>åC@¢Ñ@ü¢£ QDˆ)øTİ‚§Gıùƒ¦ˆ”6ÁÁ B d®5W-µC&Ë(0€3	CDğĞx!§w€ ººj@­[Ø XÃ
-Á²u²ğ+%€Ìâğ¥Rå‰¦âá…“…‚	T!„TTç	¹ÆFÌÄØ»«yˆh¦`"
-A„"²ÑŠwàÓ¶B«(ğª
-¡·CøíZR‰Ka¯€&0é×¹·âá x²+l}E
-È:a(ÙÿM—¢	ãHpWÈYO§°Zß¾ö	¢`E^Ôö:Îw@›h9äƒd¬v1O(‹~Ùá!Íö–ÄK*…Çú‚ÂP°Ëjq‹!À/¥v°Mi‘ÅÔ&x¢Ù ‚Ÿ€˜v(fİª­Gg€[©ú@®VàGñZ3Mô“™X±`èOÇõ¨x<åæ¦· ‰j&&Óš§ubK€—Ôğ{T"™Hy‘  üe¸ìŞ¡]<¦@ˆ³œçLç:ÛùÎxÎsu@èYÎnát€[FALH´¢ÍèF;úÑ´¤%İƒÖìäÒ˜Î´¦7ÍéN{úÓ Ît ÿ4U-tùïu:ÀêV»úÕ°µ¬gMëY{ Ïµn5†.­€A' Ô\ˆ²&–±YæÊŸUB™Y€h€›a@r&B0³ÀØÀÆƒ“³Lƒ-§ÁÇ¸™Èwm‰dÛEŞíbüÉÉ€å>v "Šc<|øp€+4ïsÏ¡Äzh°#Zà  ¤«ıÖÃ„õÀß¹:À?dlÂñ `=¬W/xÀÃñVÛ‰ÛA¾zÀn›İ ¹‡?`C2öøÀëñÒ!ÆÕC¾Nÿ@åq`®œ‹Úæàw Çl~slÓA·‚-BÀ ˜œUD/º¹ç€ZAHö'Xğ`ÿ Dş êR—72Ñ–äÈpÀLĞJ"€=ìş>ƒb3*º¶<±xÀ´^„·Ãı{E@_íÖ; †çüş÷6ÄÕ_Õã¿³:bª<ÿB1l„ÉK]qÃVé>¤ú`¾J@gŠ€#­ØÂ°‰yİ…rƒ^O•² ŒšD	uØ–ƒÏ—«ø?8AÌDUâçO9“¸</Û‡Ş¼wÄSqõ‘U0  «í#Ì=±Úä,8¼8?_z‘3t¤~p<ÀD{)Xÿ'==$ò¢Õuía}¤O ğ}ø}Ò	pö´½bú´1J@}ÿCpe S™Çu	Hb ²€B0‚« s>€Ï"	&({?°yL@H ·G$%yexRx€7By2(%Y„ À ®ğN? ?£à‚K ƒ3H 5…nPP!aïğ©G•ò0G‚`81±çìU\$Øƒ–P`1xuvz Oh" 4ñ! °Z¥ ƒDˆ:C`T•kˆ¤`9s„³7nXğ†] P‹î$]/¨( ATå„ ˜Å÷€‡¥‰˜`HA˜VH¸ö”dNŠ†(8Î~´ãzO¨«ˆêdEÿÕtMµ»hŞ4Gf‹wŠF0ŒS M†x
-½ä¿ä|@Q ŒËHƒ××ÆäršğJƒ—+˜~ˆŠ^ÀŒOK¾˜£äÖ2£1"{ÏE‰÷èØ«Ôv¹pIŞˆxB%€|?à|-}`hø¨TğI>0`° H4rĞ—'Š`†?€˜xå‡ïg†ò÷ÖÈˆ`H I7–wğG§Øò Š¢`d‡Xø!(r„J€’F`H^§tÔ((¿Àğƒï08£Ğ‚íQ@9eÄyºp•mÖ+$h&& £°Z³ †JÈ„Ø†ÿcP•out
-†4Gà‚07[èbĞ…c˜†ˆÈ†¹¹aô’ÑğDK3_¢‰a&H¨©‘~ø©ˆhùXEìDKÔDI fG‚“p‚Šp–?@Š•HSé—Rxn™ÄPE5¤/4YÙ–E€‹“y»ÈCEX„BH X)>	«øB bÃ°A —mPœÆù—?0BîÈô!CÉĞ«ùdErHı3>q°Ü© ;`&tï?p`Ü‰5ú£âó?o ŸP°Ic< õ™g€ŸNĞ=>4S˜Æ£8ÏÉÏ³< ia;ÿ“;k  ¿<Ui¦“5®	Š±c7ì°¡å —ÃD¾I!j¡ƒ £S÷§f18Çc‘YĞ¢C 9”ƒÖW.ÅÒ¶)¡|f £ù4™“¶'*°‰Šº§€£UĞ¢t#1wÃ¶Ç>b–0
-O–us@ÿ¨!Úh)%5 RVv'gÈƒ5jP)Zó4 »Q.°¥`}Ú@#Cãğy3ƒ ª ;¡SFPÈÀ^,™.3•ºÛy39ó!y5°¨ğ:G°~™'HX2ÿ¹ê¦Z`2ï€ )ÓˆÊŞv£øŒÕ€0Ù“£X 1C1m*Ğ!äCpEªòB/(–V¸/ıò!ÿò‘1"²-'S+·R@R@.¥r.®¸9 -,ÂÄb,áYLÀ,Î-Òò¯Z à6ûàk°Í ¯ñp*©²*¹©°"+´2 ß¢Pj#Éİ
-|â'€b*‚B(†‚('p pò(‘2)´21˜¢)t°Ş³šbB&³&ïQ@n'\Db$H¢$S%SR%WRªG;Jš[Uµ}×9£µ «Î2fU{µfJèçµ‹G 1b{´dK 	õ…¶_—HÔ4·h²z°3Á Bt«@	~{÷¸¯€·ˆ;Š»¸û¸¹’;¹”+A  ;Ô./0_Bhttp://www.cs.duke.edu/brd/Teaching/dm/psets/ps1/pics/flipside.gifO!bplist00ÔefX$versionX$objectsY$archiverT$top † ¯"()012JKLMNOPQRSTUVWXYZ[\_`U$nullİ	
- !R$6S$10R$2R$7R$3S$11R$8V$classR$4R$9R$0R$5R$1€€€ €€€€€Ó#$%&'WNS.base[NS.relative€ €€_Bhttp://www.cs.duke.edu/brd/Teaching/dm/psets/ps1/pics/flipside.gifÒ*+,-Z$classnameX$classesUNSURL¢./UNSURLXNSObject#A¸‰õ³ì TÈÓ345?IWNS.keysZNS.objects©6789:;<=>€	€
-€€€€€€€©@BCDEFGH€€€€€€€€€€VServer\Content-TypeTEtag]Last-ModifiedTDate]Accept-Ranges^Content-LengthZKeep-AliveZConnectionVApacheYimage/gif_"ca2683-a2c-4ec832f9d11d7"_Mon, 02 Dec 2013 01:34:50 GMT_Fri, 17 Jan 2014 23:35:15 GMTUbytesT2604_timeout=3, max=99ZKeep-AliveÒ*+]^\NSDictionary¢]/
-,Ò*+ab_NSHTTPURLResponse£cd/_NSHTTPURLResponse]NSURLResponse_NSKeyedArchiverÑgh_WebResourceResponse€    # - 2 7 X ^ y | € ƒ † ‰   — š    £ ¦ ¨ ª ¬ ® ° ² ´ ¶ ¸ º ¼ ¾ Å Í Ù Û İ ß$)4=CFLU^`goz„†ˆŠŒ’”– ¢¤¦¨ª¬®°²´»ÈÍÛàîı$Aa‡Œ «°½ÀÃÈÜàô-             i              /O
-,GIF89a} Õ  ¢¢¢ÑÑÑÕAAÈÈÈÚÚÚÔ::”»‘ûûú¨È¥äääìììàppfffì©©öÕÕ555´´´,,,\—W………zªuÄÚÂHHH¿¿¿êŸŸıõõ|||öööYYYõÍÍ”””™™™(w!«««Ï""Ü``ssskkkÙOOñ¼¼èèèêñéÔäÓå‡‡Î((¹¹¹ñññ<ƒ6#sËûííÎúééøààè——î±±ó÷óç’’¥——ÿÿÿ!ù     ,    }  ÿÀŸpH,È¤rÉl:ŸĞ¨tJ­Z¯Ø¬vËíz¿à°xL.›Ïè´zÍn»ßğ¸|N¯Ûïø¼~Ïïûÿ€‚ƒ„…†‡ˆ‰Š‹Œ‘’“”•–—˜™š›œŸ ¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏĞÑÒÓÔÕÖÏuBP !×æO.6t'å?!'Oí#àçøCõ#C5êÊ( Bpà0"Ä¶ü @¡ÃˆwC: 8A!'HÌí $/.¨|1ÄF€ëÆ´‹pğ '$àÈá„Oÿ‡'Æõ$Ò€0ğy!Ég8Beƒ•-_“ã7› ü W”‚78ÒUb¼N„x
-MG‰G@¨@å\!.aŠ)d;pKÁe+÷Ç	~C’N4;“n³)jèÈ»wHßŞúe©D
-#º~ëIàğÇÚ ÒXÁ	pn[^æàFG¨„ìÙoVÁ_8*ÈÀa¹\l¶0À ‡ª‰P´È v›»‘á0Q£ÆF„_8jä3ˆã¤·ì¤ÀÑ£àP4hsåÖÍù'Ä[á³C	åÕà€@Ş(Jï¦UL[tÿ@ø%HÌä5\^ğÎ„&0‚D#`‡YÂH_ €‘ˆ¿¨ ƒoå•p’v*íÈ¢‹8ÆxÁZ£ÑÈã“X<àÀ/•÷ iDl/¡$“vÑ•GFŒéD ÷‘Á‡ \¥.pƒ	EdyAH€#_ÎÈÅ7H ê‚C46À‡oâç0Ğx‚JiBÑ§†È9‘ÀRı @	p Î;Ìq0FåØ¨@tvO›ş"î4Û¦9¥ÀFì™¨)qÚà€
-´AZE*™Ei|JtÊéc…@qÍ5f§f5ÖÕ‰)ÅD¶E* kÏÑD7à®¼¾TÿÀ:x‚°PèJìÆŠ&Î
-!×ND@ÀNàˆ:VP kúXnäæQ<
-ìGDtıëÕA?€TÔZè’Ò«ï^0Û–  àÑ6!àVróÖÛä¶ñÓrn}{[8‘M‡pNò´ED¾ ı s\úÄP…²qW‘ğq6V,A;%Pr¤B¤|ÜºJ¸& Hˆ¶ÕNFÁÖ–mså+Wi×«/?@KÑØI§[×L_à4­FÂ Ù¤ ™FhM)ŞGØvüH<Eq0aHoå¦Ø\'à³«¡ıPpcÏ~'qEìXw'KÑôÓFŒ `¿'Û†4óºiÿïİN¡P¿B èYsTÈ€Ym:×sE‡B¯
-±S9!úS7Ñ|ú'©q€z³~DkÍxµo;ø¡	ÛõÈØğâÚsO¢J5lH¾D*Ù}	ğÛÎÅ>b¸wEØŞè—²…@dÿ.à?u¯
-Aq@øı@ó;Ã+ˆ@-d€1˜İõ>' LCúg>-Ä€"È€
-W8‹º†!TÃ/ Ã]P
-
-E C.a*@Ox`©ÀÁ‡Eè 	(C•ñv´Â
-”xXñ ;ä!fJ‚8 ]l@€&`€*²ÿÁ%ÌÈß0Ä/şï
-	 À?–]UâH¤"ÉÈF:ò‘Œ¤$'IIFş£A Y€>4´`4 ÁëhÅ3¸ÀƒZÔÙĞÇr!/ ôÄ€R¢˜Ì¥.wÉË^úò—À¦0y™©,˜@(—9J;–¡“zÔ›şŞ0 • À•r@à,<]B§8ÇIÎršóœèL§:×ÉNrÂ —X€TpD1 ËÌ§(éèÌ2¤’Ó„C5/pM#~!  ÀaXÒx:ÌÜ@ nüÀZ€€ŠZô¢¥>õÙÌR~¡¸€‡€ ØÔ‚Kæg…ÿP”¢°ÑšÚô¦û$e@*R’ÊÁ¤h@J³ğ„*”ŞsâhŠÓ¦:5§ı¬‚B:Ò= U¨õ‚ HFÀ£JSŸJVœvt
-
- ê
-úpÕ¡r¡ c4…à®xÍ«^÷Ê×¾úõ¯€¬`KØÂŞ5©EkY{Ó³6§0dÚšU1”.«tCÉ •xö³ ­hGKÚÒšö´¨M­jWëÅ%(–±°µ©À‚&4€ ™nwËÛŞúö·À®píİúà0ğp—ËÜ½ ¹¼	°š†4àºØÍ®v·Ëİîz÷»à¯xÇKŞòb—8HxÿmlcëXÍ¨p«Ò*ÒÍ†Uê]ïSÛk	øÊ÷ôì}]«_²òW8©¬øG7X²&B~Ê{"ÁXpeÓ`"<8ÂK°@FLâ›XMµ°(0¬a0ÖQ)å‡AŒ…{Ê–Ÿ`E‹lA4Ø3¦±’ÉQËbÇf43„ ™
-Ÿ¬°‘md¡7¿i2U!üd'X@Åµ¨rƒ³0òœGNîr¨˜ã]ˆ¹Ç]XPƒ®”f5WÃàq±@"L¨Îv¾óIóœd*øH5Ò èj`Ğzæ¥ %*ÍyÑ[nôS}B»øWUˆÓœÿ0-R.kÚÑ>£^Œ„E5ŠÑ§¾§1P!QÓ)
-½ú¬c-ëAw@J¨’ƒ °±ìš×½ît|Ä  s	K;6²¯‘ _÷ÙDMˆv¦§ j+ûr¶´á,mn›ÃÛ´ş2c™AÛ¥6÷“Ğ]!øæDïn!š·-o%@ßşAş±™"`‘Ôî7”ş} ­%p÷ÁË­ğ|0ÜáCˆ1`ôpSWÜ2GÚÖ1q~üM!'ñFñ“?e ‡ ]…pÊ˜´Üå/ùÌĞIúBÀã8OÌ¾sRÿ<è§S@Ìqäs #]DJo¸DšştöEéÑ«nIu€«dë\ï:ÀvöyÇ¾eO»Ú×Îö¶»ıíp»ÜçN÷ºÛıîxÏ»Ş÷Î÷¾ûıï€¼àOøÂşğˆO¼âÏøÆ;Ş	A  ;Ô234_Ehttp://www.cs.duke.edu/brd/Teaching/dm/psets/ps1/pics/koch-square.gifO$bplist00ÔefX$versionX$objectsY$archiverT$top † ¯"()012JKLMNOPQRSTUVWXYZ[\_`U$nullİ	
- !R$6S$10R$2R$7R$3S$11R$8V$classR$4R$9R$0R$5R$1€€€ €€€€€Ó#$%&'WNS.base[NS.relative€ €€_Ehttp://www.cs.duke.edu/brd/Teaching/dm/psets/ps1/pics/koch-square.gifÒ*+,-Z$classnameX$classesUNSURL¢./UNSURLXNSObject#A¸‰õ³ì½ÈÓ345?IWNS.keysZNS.objects©6789:;<=>€	€
-€€€€€€€©@BCDEFGH€€€€€€€€€€VServer\Content-TypeTEtag]Last-ModifiedTDate]Accept-Ranges^Content-LengthZKeep-AliveZConnectionVApacheYimage/gif_"ca268b-60d-4ec832f9e4e3c"_Mon, 02 Dec 2013 01:34:50 GMT_Fri, 17 Jan 2014 23:35:15 GMTUbytesT1549_timeout=3, max=97ZKeep-AliveÒ*+]^\NSDictionary¢]/Ò*+ab_NSHTTPURLResponse£cd/_NSHTTPURLResponse]NSURLResponse_NSKeyedArchiverÑgh_WebResourceResponse€    # - 2 7 X ^ y | € ƒ † ‰   — š    £ ¦ ¨ ª ¬ ® ° ² ´ ¶ ¸ º ¼ ¾ Å Í Ù Û İ ß',7@FIOXacjr}‡‰‹‘“•—™£¥§©«­¯±³µ·¾ËĞŞãñ 'Dd„Š£®³ÀÃÆËßã÷0             i              2OGIF89a    Ä  ÙRR™™™ËÚÚÚöÕÕõÏÏç’’Õ@@õõõÈÈÈ§§§···Ñ,,ñ½½úèèéééâww‹‹‹ıõõë¥¥İccMMMòÃÃî±±ÿÿÿ333üüü   fffttt„„„şúú!ù     ,         ÿ &dihª®lë¾p,Ïtmßx®ï|ïÿÀ pH,È¤rÉl:ŸĞ(`¸¤Ø,©ÀI¡9˜Ïè´zÍn»ßğ¸ÜİõÚ¿ƒÅñÜÿ€‚ƒ„…†‡ˆ‰†`>‘’“”•–—˜™š›œ˜w VZ¥Iy|¦®ILµ¶·¸¹º»¼½¾¿ÀÁÂ¼	<ÉÊËÌÍÎÏĞÑÒÓÔÕÖĞÅec5âãäåæçèéêëìíîïç"~1­ßô¯ı+ûõÜ{ñÁÀ€ü)4ƒ½(œ‡áÁ€…õQt(0Æù%H€ £¿†aÿ@ ADC<0ù
-eG~º5¬¨@A‚„4µØè¢Ë—Eè¹`fP,Ca8ğ)?0{úúôIÔ¼°ZVM»zİ˜Ò…;dK,=ûS-“¯.>y¹²“DL¦#KÚM‚·E4^%aVëÅÁJ
-¯p§j_Kç>N!ØEgÈ)$«°  K(Å)XT°Ù­Ö*^ƒşÇöfü\{™ñL§(xø¬B8ñÙ%D§0ğÁ	z“à:bn1<(À0àïã˜,Í¾9
-å(d9ÇğAz
-ZÌ"H ıâ²‹ğAøú¬™w^mDµ°j/`G’ÿôi#üUÄß%5(à€ü´åÂî¡@%-àÁEóÅ¤ô-0‚ˆ°]—†
-p‚/$ \1Æ!Ğß|#¢ƒÆ¹È1p˜øa áEæ·‚`\„B&G$N2ÆÕÂ Ä¤p÷EĞåè7˜U’€^
-F.†dkI*épeµ(äš(´™fx çKôiÂŸ€vå„z„ %$ªhŒ’àè£CD:Â¤”ai@3v˜i›rÔé‘Ÿjzè†YÒXª©Ú†ê¨n®êC¨˜Êº­©zjë¸Âº+½jù+Áª:¬Åêz¬É’º,¯§Æèë³ÈFËBÿ­Ô2kí
-ØfC³±z«m«^›«³âÆ nº6¬Ë.¸ê„î»-àz²ô`¯°ùº°¯±ı²ğ/¾‡P¹ÜŞDpÁÂhî½ó2<$¹E*±Äjn«BJ<ğÅ¿èjŒ‡rÆcYòÉ*|l2Ëü0¿0ÌÂ[ü2Ë.×¬¯ÆlêìóÄW¼òĞ(­2Í>÷Œ´Í'|ôÓ1ãôÔO;MµÖY§ĞTWm4Ó5s´ÙC£İ´×~‚½5ÛƒºİuÊˆÊ}vmŒğÚ­ÎX7Öw÷­wÇÛä7ª€§]Ûá$“³áƒƒ2äKï]öâ‘ï|2å;Î3æ•Ş/ÿçˆ{¾9è[ş8ê¥«ş¹à¡K1é»~:ì©‹/í3Û>9ëµëN/ïR›ş;î­ÿ.ñ9'Î7§™‡3ã½+Ï.óW?;ğÕË.1ö_;9òÁ{Ï0øm‹¿:ùİk~<ô±»¿=ûÅû>?ü¹›ï1÷õ[Ÿ.úqSßë®àä£}ÒÛ‡
-à È"yú+Ü<.À€ ñKà<p‰äO~ß£ÈòAÒÃ‚^È[	Ã•x¡%+|=&àd…)€ =Òƒ2 aç&&æ†2Á'X>o#o‘Ç"8ºX`,1àR*0Œ.zñ‹`ã0ÁŠTÅÇ5ÖÈÆ6ºñkÌ@y0`µ, xÌ£÷ÈÇ<Î‘=Gˆ…ôtğœÜ0àˆƒ”
-€Öğˆ¤$'IÉJb†;p€(pExò“ ¥(QÇ ´ÃVÉÊVºò•oè†Ğ€M¢˜L$>P€	0G—À¦0‡IÌb“!  ;Ô678_Chttp://www.cs.duke.edu/brd/Teaching/dm/psets/ps1/pics/inversion.gifO"bplist00ÔefX$versionX$objectsY$archiverT$top † ¯"()012JKLMNOPQRSTUVWXYZ[\_`U$nullİ	
- !R$6S$10R$2R$7R$3S$11R$8V$classR$4R$9R$0R$5R$1€€€ €€€€€Ó#$%&'WNS.base[NS.relative€ €€_Chttp://www.cs.duke.edu/brd/Teaching/dm/psets/ps1/pics/inversion.gifÒ*+,-Z$classnameX$classesUNSURL¢./UNSURLXNSObject#A¸‰õ³ó¬÷ÈÓ345?IWNS.keysZNS.objects©6789:;<=>€	€
-€€€€€€€©@BCDEFGH€€€€€€€€€€VServer\Content-TypeTEtag]Last-ModifiedTDate]Accept-Ranges^Content-LengthZKeep-AliveZConnectionVApacheYimage/gif_"ca2684-b10-4ec832f9d3503"_Mon, 02 Dec 2013 01:34:50 GMT_Fri, 17 Jan 2014 23:35:15 GMTUbytesT2832_timeout=3, max=98ZKeep-AliveÒ*+]^\NSDictionary¢]/Ò*+ab_NSHTTPURLResponse£cd/_NSHTTPURLResponse]NSURLResponse_NSKeyedArchiverÑgh_WebResourceResponse€    # - 2 7 X ^ y | € ƒ † ‰   — š    £ ¦ ¨ ª ¬ ® ° ² ´ ¶ ¸ º ¼ ¾ Å Í Ù Û İ ß%*5>DGMV_ahp{…‡‰‹‘“•—¡£¥§©«­¯±³µ¼ÉÎÜáïş	%Bb‚ˆ¡¬±¾ÁÄÉİáõ.             i              0OGIF89aTJ Õ  ÕÕÕì¦¦ÚWWëëë···ááá¡¡¡ùããõÍÍöÚÚûììÔ77###óÅÅJJJÑ))ÚÚÚÁÁÁğ»»lll777bbb–––äƒƒßjj€€€î±±ã{{¹¹¹ÖBByyyËËËÎæŒŒ«««vvvõõõŒŒŒUUU†††Ëfff™™™àppêŸŸüòòúúúñññÌşúúØMM×HHöÔÔı÷÷áttÏ""ç’’ÇÇÇé™™   ÿÿÿ!ù     ,    TJ  ÿÀŸpH,È¤rÉl:ŸĞ¨tJ­Z¯Ø¬vËíz¿à°xL.›¹7QëÌn»ßğø÷UÄ­HCDHåûÿ€‚`
-D1>><C;*3ƒ_+•–—˜™š›œœ¢£¤™#’Y6E>®C3*=¨]&Š¹º»¼½¾¿À€ÀÅÆÇ½x¶UDŠ>§B*!ËZ ,ßàáâãäåæä‰8~>(çñòóâŒÜR3*6D'>?Føh cˆ kî)”B``	9¯X,œˆ$ƒŠUCÚˆ!„XŠ<{Ptc‚)Ä4ÄÁáªà—’'Gvq¤âÙW† p7`ˆˆÿG‘dR@#DD6Ùy À›Ô:ˆ!j©R¡T&ÈP¡â*K‚D,øXk–¬S&´XË¶­Û·p×BàJ—A†¶!¡àÃÂ>Ñ{-®á¸sé^¼›m:¸büÕ"‚MaÇMh*Mº´éÓ4|2 ˆ6™}l& ¦Ñ§së¦›z5h!fqµù°`#Æ‰Lø›‰Ğ£KŸN½:ô£=0¦“$,6b)™@£Èsëè«cW¬/÷æEf¤«4öì"•/ÑÓ>¢:ĞÀA ü$ñ95Ö”OD$ÂY\ ( ş-‘ƒ ÂA0ÿDxI|åÒ<’a0=ÁßUUÆ+åïe‘â‰L$0Ù0`Óƒô”DDCÜ0…8
-Rby7ù`B-œ
-$‡>" ŒKhÄ‘¨ CVÊñBd¤a,XM‘ú¨°A™n 7Ø%Ä d
-	ÒùGõˆb ğóA`¨ dÌ0W ?ˆäfƒJD ˆSB( ƒWAú†,* i_ˆ,2tq ª?MöƒwÂ8Á×	D”èÁ«q„	Á{Éqk#Š…ÊëìÑk®=‘ª=?¼0é±o`G\~_hÚ˜ŠÉJ­9PI_~A¡h­Üşúÿ-	dc›ˆ^ô)D5ˆ°•
-"¬û…§2"Sœ>q)4 ªïe@N]xùÃ}èsmk±)M±g§Ÿú[±|ZàoAävB@ÔÇ[ğ‚m5ğ¥Áj,Áj•Cøãg,U0¢´r.@iÎX`© 5ëP±æDÏ‰ô{¤)D4>l¶C„[ådN…¯ï]°(ˆ
-‘rØbcA(†’à®X+„·m…¤*MY"\qêØ¹ª÷|ûjàV.Dá‡WñvÜsga÷x÷¹da6ºhû Êw²½ù/T=ÖZWÁµ^GkúéN(-ÿ„›MOñ´QÓÅÎıü³EĞCÏµÑ¾Sá2ÌÍEÍ«ª€sòN„,ÃÈ%kq²Úw®L½‘±ÿÀ¯Çß+‘ğÂ>äÄ…Ãÿ ±
-§ÏÄù:¹Ó:Qp öKB»^6xuA^•ª×½ò@'ÄnäŠÂ¹ˆĞ¹"ÁZCx´Å©0ÕÅ‚MH†Ğ¼Æ	Ï‚Ú´@h„
-'0aÖmŠÅÂ%ÄŠ´z‚… «ÆÇ,«Óª-VqÅp><Bâ*õƒş-ASY¿ŒUÃÉ}Htc˜àŸîô¨$ÒæNyBù’€@FÌ‹ÑB“š $'Ş NRCc°¤%!pÿI	ÙÓ˜ä¸$ö=‰å›Ïä8¯õèGlDÂöŒTªÓİ¨	+ÂÅpÇıÌhvSxdÅ6Ô¡+î$‘‰hg¡ì É°»yM¨¥ÄĞºäCÃ8îÔĞÏ"‰£ó¤ç—êÉÎv”Cğ`‘ä10—¹º´Ç˜<Ñ”†3„ËU†bÎ‰p³›nî¦7F(á	ÏpËÔ†Üô¦:¹NHAF2Ì%f„x1ù>j9Œ>3»àåBˆ ¬ùƒÏäsŸúLL]Ğ2i…+^Èˆ5–²42yT9JRœ °§De*EÑ(¿Eâü€aÿJäO ‘<M>a|ÿo \š3‹ÈªdĞÛeHi„˜=$Ûã)ò±à¤|áË7èÁÔ¦#>È4§Z•©Ğ¢S3LŠµi¼©ÚÀ.AÖ²útq †Y×jVe@J¬pÅ¢HUQ¢xÍë&>
-½ú5¯˜T!‘UÍ¥BMlsÈd·ògYŠl™Ò MÉZö²˜Í¬f7ËÙÎzö³ -EJ@ à§ãrŸ( Ú%€ ¨eLp|’…  €n±ğZ6!áµ±ı .`‚°¶%Ğ F`Àş€ ût@ Üç% € `€Œ“…Õ%Áu©Pİï¡º×ÿ€ İF×w&ÀƒzM `¶õu
-H`â ¿ ¯(`S`¶%¸€b+H 0Aà"l˜€ ~ÍrB€$÷2à¯.+V€æ>×Ã& À :,	œb 
-&Á 2Üà(xÆ?€±dlËÚj \C0€fœ_[š Â®oO.|â?WÄßRïeæ[]!ëÖºRNîÑ«^üøI °@JŒüQŒH3x`ØWÈòH #9·2®pÎ8;ÿx¸ÖıHİåby½HAšÓìfC ÄWVI5­\ëf7'p®n@‘;[7Ä 83¯ÿ¼™êvØx°‚m,ìŠgÕÕÕ@‰OA‚œt¹&B	,İO‹ùG~­uKœ
-P€¾  @ƒÍ«/æ:…$ €Ik]PH`ÚPIu) àÚ BÀ¶J4ğ¤.×„õ¯ƒ­îËÙm^ö·(°`™¿³1ó¡$ä'éÛÊaœL õ2îC’2°ıÒ`¿(\Á¶ Â\T3[_¼ÅÄ³-\ë×?­ Ûü/’ƒüÀ&9Á‰ ^kè›×Ÿ³	J€oS<Í¸8¤ÒŒİƒBÒ‡÷kkâõÎyâÕ]ñ§éÛ!ÓBˆïÂG Œ{»Lo°5<ÿŞ¡šd$7:¤U<_"ğ÷§èíø™ÑK ¦¡Áú1ú‘©nu\ íÏ5×Æßk |.ùe î`)C×Õ5˜è"Èyß`¿ („nuÆYH'm×¿UâÓ
-¹ Oó„w\ Œ`òC05tIoúê^`ñN} åÜ`É¯W½ ®ÃnoØü[^ïCÒnËæ€SÌ=~s!‰@»¸m}K|í–^a\Õ°ìU_¿ÑfY‰ÓÜøçë‡¯øÆLò«ûêßô±Kp"ğºø#¸ş²ÿü™@ÅŞgKà7bmc[ –
-[¦ 'ZS ]EĞ€-˜D¤E[w\vaÁNpÎÕ°‚&x‚(˜‚*¸‚,Ø‚.ø‚< ;Ô:;<_>http://www.cs.duke.edu/brd/Teaching/dm/psets/ps1/pics/fern.gifObplist00ÔefX$versionX$objectsY$archiverT$top † ¯"()012JKLMNOPQRSTUVWXYZ[\_`U$nullİ	
- !R$6S$10R$2R$7R$3S$11R$8V$classR$4R$9R$0R$5R$1€€€ €€€€€Ó#$%&'WNS.base[NS.relative€ €€_>http://www.cs.duke.edu/brd/Teaching/dm/psets/ps1/pics/fern.gifÒ*+,-Z$classnameX$classesUNSURL¢./UNSURLXNSObject#A¸‰õ³÷èÈÓ345?IWNS.keysZNS.objects©6789:;<=>€	€
-€€€€€€€©@BCDEFGH€€€€€€€€€€VServer\Content-TypeTEtag]Last-ModifiedTDate]Accept-Ranges^Content-LengthZKeep-AliveZConnectionVApacheYimage/gif_"ca2682-3b64-4ec832f9ceead"_Mon, 02 Dec 2013 01:34:50 GMT_Fri, 17 Jan 2014 23:35:15 GMTUbytesU15204_timeout=3, max=96ZKeep-AliveÒ*+]^\NSDictionary¢]/;dÒ*+ab_NSHTTPURLResponse£cd/_NSHTTPURLResponse]NSURLResponse_NSKeyedArchiverÑgh_WebResourceResponse€    # - 2 7 X ^ y | € ƒ † ‰   — š    £ ¦ ¨ ª ¬ ® ° ² ´ ¶ ¸ º ¼ ¾ Å Í Ù Û İ ß %09?BHQZ\ckv€‚„†ˆŠŒ’œ ¢¤¦¨ª¬®°·ÄÉ×Üêù >^~„Š©®»¾ÁÆÚŞò +             i              -O;dGIF89aú cÄ     ÿÿÿ»»¼ÃÅÈÛİŞz*Y‡†ƒF6+\M0n`P—ŒQ>,„te§ ›OLJ¸³°=3.Å¿¼ÌÈÆwutİÚÙÒÑÑÿÿÿ                     !ù   ,    ú c ÿ &dihª®lë¾p,Ïtmßx®ï|ïÿÀ pH,Èd«RQ:ŸĞè’HP¤Ø¬v‹¡Z¹à°xY,.ã´zıª Şˆ&{NŸ7
-…F}Ïç>x
-}†‡Ix…ˆ‘>
-Œ
-’œ2	‹—	§¨+Š—‚›©¯°¢Œ°·¯¬¦¸ÀoWÁÊ‘ËÕ’fÖÙ^ÉÚŞbh'(áßçJ	$ÑÏ$êòè÷FÃä"nqF8x°À 2|‰8@`ƒdÕŠĞ€Ãü%Ü„` wò|lÄ£Éÿ4°Ä‹‘‚	œœ¹#‚ƒ³xhàÀÍŸ6. óRÊEÌ]c%fHm`æé¦Xe8¤ h]-Ğ˜µ¬
-RA`A‚„  ’JÍ¬İ”núc`O¯¦»eû9PÎ§""(%!`œ+À0páBƒvpIpsgkBƒÊ“÷Aæhá‚Öa¨à„Ğ"@‘º‰º†6ø5:áC	[$X a8†¡Ì²µ „æH¨ØÛä,/"xM<eÌç²µãQ `qu|¹9PÜ©C3¡L  xÓç9Nü ‚ÓûmMöÆdoŠìÓNÿ~	¶PATàÔ"ƒh²FãÄàI<%à¬¥ôFLë<€ÀdOñ¶aB€`2\PøU
- ØœXˆ­¸7 CìÙâŸ&ôaäÔ<Ù£ãFH¸Ò f8ğ3¾´@*.©\vS×ü‘&\À}hX!‹}Ùe7ZF¢oø³€’ÄÔÀ@%Bi»‰àTH¦D˜\…ÁB'ªg$fÒÂæ6Ğ°÷ˆT´Ñ7@˜ù¤Î@¹dŞ£}D*iJò'A840@™U 1@\à*ê04‹§¢ÚÇz£äq§ T€ˆ
-T _¼öYA!Ñ4 @ÿ¢wüJ–°¬rÉ[8 A6MàFNhbô”@¸¯IÀŠ#ÜzR*#w†æ”J±Ş©Î:ØÆZdh‰¢h½œÜºU¢ìtÁB<0€¬’‘e/ÒN³"Ì	Aô‘‚Ó%Ïì²'Òù\ %Ó /zìIy±„C#’Ñdµ¸Oz.UtÌ§äÀ¼³$à“òxáæäÌcD#rfK¾âÁF7o-ˆÆ#_REUwkß%
-Ã…„¤‡‰´¸•ÓXT—mÄt'Šô‰vØ<ÈÍÅlk7$eLc³K-Îwà¼(ĞÌ‡£Â×âkçÔÈP‘C[¹'‰N6oÿtš5Ò(û(ùù!iµÄğW¥û¸OHórºº!ìµèRs¶ÔQÿÑ’ûí‡ Ü"|?…9+‡ay#û,p(ñ†@AFjrˆèó¢xs˜,DÁ—ÔCâ³L8
-T£Èupùr>DgÎUÙ7–| X‘êğ÷1A[ñÙ™šÖä)d Ä8Ş° şía!¯ ‚ğc2  öeÄt°@qT’`•I,¡ÁTE˜8'K ƒp“š­P(°çnö„Bcij`Ã5P 4Îˆm‚‡Š<"8ÒØœŠx§Øãş› J¼Š‘¨¯ø7ÿ1‚±xÏˆ‹4"`l|…- å“8C6Ry•ríñ€ãKßêøÇTÄ§+d,$'ä‚š*à¦FŠ,ÍPÁHz¢CĞàhI>èĞ(Ÿé$'4è´›`‚¢”D¢È3+•†ğ,O!ËYv¢–¶¤Ã¦8‚Ã €Ì%t‘‰\Sô"'…Y‚Wú  WÚ&ÓAóÎ´Û)9‰qt…™¦(@‘ëÕGCDà‹²àwÌ”D}JÀRC­Ñó ô‘C’döÏ2É6€›h¤$VMLCœFÈDÉ!RÉ¦İ(`‘ßBÜÄvÆ’Ùÿ„NÁä$ğ‡ß9„—Ä+à½N$T 'õA€¾’u4@Ÿ<`é×Ã?°„}&ìAh“¤ğE(äjCs©àÆŒ·³O³ÔÆèjz1ˆHŞ`Íh¾"Ku ^e®ÄoJìiAêcA•”"[*![ ¥Ô°É8p
-ölKW‹ˆR¡z;sÒgmd¤Ôm€K4Çp}üIÅq±BVÍ\ E °ÎX6|õlFG@¨Üdô €åHp+V¼Œ“,?²Ô•˜t¶œNJ&€,Du–0ĞšŞ)E`­	è‰ÜtÚšJ0Ã¶’dq<SCÑeI	yÿ†ÃÀPt{ä"V¿à›T÷'\-‹\ıl€¼ZZb5‚G…`À0pX@¹²q8”:|„µ†¦y 0'ôİ,ˆ\Í‘q¿¥]ÂMÌİ!&DóG5¤$€Ós“Q<†ì9X%Ss……TğƒT`0½EoY³à	ºr€wòa<:€tG’yŠàÎ’ÆN¹A4áeÀ ’÷a¦Bô‰NRš§3PXE£ai;€” ÑBv4'o.ŠP„Å <
-DE&ÃÄ±¼ã ŸŠÈÆl€ßuøfn¤"/ALØ¦¸À6hQÑ#!!áNÀ—7°ƒ˜üÿˆ<(€ğwx˜ÎVÃêåL ƒØ…HqLa‘‰™aÇf1ÛRÓD‹@­1‘qF°’çPÌ! Å[x¢´µN 7¢4Ñ°«±2mâ%­‘†–ıÔYŒf¸^ÄD@ˆÃ,;JüP	Ù€ª¸—+!l)ğ’JDn+ìÁGQœ8€KÔ®ˆ Nh¾XšN×Z‰¸´‚£& ÷ò2±”R‘5a4É–ÍíãP` ©İİd)–”¤«*P‰	WH ‘àå §±¯Íç"´gäFf1øŠEöÁó–	6
-op­sá@1´Y	Ièô­.
-‡"8ÛæÿüeI
-€i¢#Å:Ûõ@æ%.ñ)L^¶ñTÅe7Õvµ±’Ãb%X>?Ò4üid4üA­˜z@¼Ïñ Â0íf•/çêŒ"mCá^Ô‹3–d8Ÿ¸¹3ç­úØšÇ˜‹¬šÓŠ>…Ğ"V&(€ á(,óºƒqØC¡`•™S¼‰JFŠ†A€ nh–îøv<ÏÈ]© Ğë—íƒ=0‘±f˜y´ƒôÛƒ
-L|T‰¢o 4Ù/A»÷¾a6ehDE*L#Aà
-˜óÅQ‘µ´Ù‹ı%`|ôâïBJ‹\ £xú*å¦f|±ÿÊ·~´ÑK81P'²cUàô¡q÷âÇ91*‘x)b”byñ@u¶=úv€ëçS]<bÁØ!DÆÓFrşšUAî´ ?‚P1¤ ŸR*:G'W'n^<ÈÆƒ	mfkfÀÇ1 mFfbQ“q\ñ\“0 ¶À×v"Zh	Ò#F³´A¤Ğ";¶0ò¢ „O1¤ MÍ1xãÀ3öaqĞ”­A)õi0‚6	
-0Zq„O7:ï¡w±	 ¡Ñx™°l™#;´l·uM3Teô(Ó3w'œ#O¢Ô!ÅÁ7 Y1ÿ¿ğ0¢e‡+&$^çû+ìsë @á0C¢À)‘3ã›K¨QxÃá– P,ãÓ¢1ãà¹ñ]!ƒÂ¦^^á>rP1TÁ,ñ\¢l	@ÀÆL`
-&2Q"&&dÍ1A1wÀb"¸ñR]ÁÜf	R ô"S“”ÀŠA'…`ˆhK ‚û5}Q»((T©Ñãp­ñcÛ>ñXnĞˆœ¥@F„ëgğ)ä4oˆÁñoïs À%OGk50	€‰”6 ÿÓèEÂ+‘ "!UE‹…(Ü$Í1ÒW´¸/B9”ÿ.·U”ô83^Šá]'àFD”_IšÒ8s6†•%  í0a‚>‚_ñÆó]# NpÒõÒ>2†NÃğ–¯Ç–0 €Ùtewõá,.8ò Mtµ˜À—0+rM<â·
-{• £˜=…0lÏqJü5<‚2¹a„“Áƒ§ Àñh$@|âA˜p	R Ùe€”&(	¹+UQÉ­ñS©³&RqÑ tŠ"hlyšgPJ²˜-+!š¦"e &oñSmá¡€ëuS>2U€9”÷2™:)?Ê6 ëáNÿB« %)ãÑ‘Fã ã;:c¡ƒ_³~÷À¡€=grÅær©åmlã2µg·Gk:61µ?ÕÃòA|ƒøønØW¹vƒ~‚q‚Ä<ˆçã‹ÒçG,z8!fE˜A.‡&‹¹cø•wbZ6Œ0S N1á ·…(Tz^!³b&Hçb(™K@'¦Ğ1}+<á0P guƒ+Í"0o>Q§ªÙCFãÂiâPœ'€ê'>ö§5öKUğv%ğ?„Ê¨3˜*0Pbe©N°…¢y•œúãòZ…diğ53i‚CÓ	ÿıÀ#Ë	Æ…"ÿ 	`Ğ`kÉr°=ÊÙw¸"‰ñ¥j°K™26!÷¨cğsÿ_Àƒ†h¨3s#"+º‰:Ø÷nRQwÛQTQ&(£0_¡X˜ú
-nÇTAr"ö•'’Q©\ l¶æ6{jÈÂL6E¡5-Ğ”Ip¡$ëœkcŒÿ*~ç
-rxT‹.¡¬eTUP m÷=’Já¶€8ˆ8cvP’ğû²J—°Ô6m/à¤:°JêJ;@A0°
-ïª°´pi¨1Ğe¯#xDëGdØW9Û¨F8<H¯1àK/ d‚’ÿÒàuI«u8¬Á”Å~_Ğe¬¡ ›¯ÔX`Bä– (gU] †*m®…Vçd?,—´s™à,À'‘š/p%)€¶ÿÀ²(`jq@¬e%%3Êe(€ycñĞDe„«‰â]G)€PÒŠ(Û#S1 
-†Š¸G÷ª%à4(Ò6t|x•%%åY¥ø+\Á<+ tä«"ğ?	$NÁãÓLµRÖC;ÚWÅ`±.¶(£0º˜£yi
-3‡ylÕ‡òz	2>ø  e@ Z&nĞ.H¸|ÉZ:¸q ´¤;ÎDR™¢^Ô–"@ûá^ƒHtÿè@	q!a&ä$ÔZvÄÂ¹L¿=ÂÉ%ÔD­©¿ck101,ğ *ñ<á¥I\†ËB÷á~×{as‚`C;š-˜àgãtcåN!(Š›tç(S”rè5qÈ‘HY˜Í8º<LmŠÒ˜:M˜&y (æ0Ç±0l#¿ÖP‡˜òáS-«9k†pÕ¥tˆ”€ºÚæïã‘§”Šè²½+•û Ûb†µ[,9òTU!*;ÁºèğÍSÄU,Q*>[‰q!8r•©¡“‰1²nS×R&’¡ ,P	àp8¹TAã±æA	ÿ!µÕ–:’–ïD ì7=\F<šˆ‚‡p	jŒyiJ¢@TÓ£ãAh‡¸VbâG’.™@!¢ t³S737Y ©Yr¦0|‡á¥=9óv fR#Ô`eÀ\* m‹†HxÁ0˜@;Š§UÍ»!Â›yãPQÓƒ˜”§áv„L§ôa”àŒ…üg’·,ï€Ğò‰<AEú)ëXxn°53Ù½ÕQ0Çà6 ÀY[8r)!îrR.¦8©\Å#-ÅD$sÚ¥ig5e"Ïj¥H¹äĞ6q%…9PˆZ'-M¤6¢¸$r
-ÿÖ†3\L`Òfë†cáÍÒs\êq«Nónİ0{é­‚yÖµÕ (u—	üdí*rÒÀåƒó‚ìI¢‹äQ}OÕ_©f‚}òóÕCÁŠ:ÑTÓXÂV*;¡€‹Ów¡Ûa¸(®&˜	tis’¡›@À'P‹ã‚m/Ä«¥¼tõ$@è¯‡KÆC,4×ÚÂwø‰”åI%¤:¹Í"Î>óyÖE]ÁÇåau*€ƒ²¤	§’ÜĞqˆ¦q'!|Ğ€{‘(ºAhÃD&‘Ø×'üP©VwJ³6òAŞ€±K§Y½&2'ß¥cº€ÿ1wÒc"]AYšŸá°J(c$ü÷ıU@ı¶üg$ºI³eÒ_x	mÎ6ÆCØ§A"äcıáNÖFÛÁîÔpÒ&áÉ“aƒu0=hÔV$¸Ò‹ÆÃ?à+§ ùu(ãSóôàTApá²Svá  &Ñ_'«rØq4ÒbÚ¥_" ˜3N}ˆƒ…Ğ!ÂÜ:È8µU³{'kuµ'òğ’Áè–(Ô68d"lÈÁ6”îÄ63¦79BŠtC	U…ï ¢ÓÙAt1Gââ‰§^âÇhŒLÈ²&ê\Ù_, &×âÅ4Å#11W}ÿ}suZ&¦@äÂØ,zîqà‚®Î=øá¥W8‡qŞñ:Sâ× ÖRJ.@\­:InÃø°&Áer»–€ë¬’¨ûFı%~ú65kòAÊûA6óŠæ/­A #Ó·ã±(i=sPÒ0c­siÔr%°Q®ÁÉ¹hwqfI×¿d\x‰”Ğ¯ÿXÏQPe¡OtÕÀbˆ:SU‰"îT™o 3µÆBZdOæºAÖ’fHÖ‰‘çü0àpÆ A¡©½$$ ·11 ÉM¼5‘ˆëá4›‹¸òif µâNNñkÿJ2UÑ1=n¹(äÍ˜¾MÌ?2A1õ®Qaóv¾w±ÃSè’|Õ×_WDÔîbÿH>Â.ó†Ğ ¦=¹_ùü=ùb1ØE Hp*qƒ&²Ü4Ï¨bFıÀ2?´9náêV9}[µäØÚØ:YÍ²Ğ¹‹ŸraQw!æU>ÄÌÚu‰Ò¯0Ñù«“÷jÆÑ½'(…şLÈ¡,§Ô!ÿxu¶Åm&È¯\W—›Ñy×£ø„®4š$‘-a?<¡GÇÁâáiıØ_ï*„.`Uğ?©5àN$)7Ø_po%Ôàn&¢	ÿM˜8*)ó Lº<‘AN3â¹¾ó½ÿƒÂ!ñwYHCÉá\‰Æ¢PPp†¡@
-ÖaJI$7LcqHâÒÃbİH˜r™õ dP\ALHÀ,89,(@H,\afjnrvâXÔÅ¹ˆ0,À©d($\¬P0„5<$¸˜@]é•68¤\åÙ,0`ì2î)0$<4D1L¬à\$(`ÈÆ™Ï´Yx’—›ŸûŒc\<<*l!˜EZØ(4T\T`0q¯Á¢6J$+ ğK,PpBÁÂp^@é ¼pùœ(6€_…òÿ9 (ïË H‚Üµ²Íš6ƒĞs¡à¤+SDpW¦D#$˜€S‘(ˆRÆÁYR¡*a‡ôÒ¤Â¨È¥ÀAÌŒ%XĞô †£IE<‚d&hfwÁ¸bÁÍ¾~ûÂ7LF'HËî€ í²q`Ùh@ğÌ×©¾J¸@!…IèRY#•¢jáÖR	v83‹à—BTåôw7ïr(ò`p@XÊ‚ ÍØî  À
-Ç^ÀP’P¢‚ŒğªĞÆ ­xb AÊæ¹j/ÌÔaÏEQ¨“Ñ{>} &(=Aøäø:"HÖ òå @hˆ`ÿJ#aøTÒ*Q€tACTmf@ÂÙ†Áa\³Ï5QÙ¦ `8`à(Ò€(”E>µÉ‡_+õÑ8ßÍJur/ğ 8@#TPATÍ²†	*”€dÉPa,yB
-™ Â“CV’<òÏ5€‚#Wüf÷€AEsşu#FSÔ'@bWN”ÏYÈ!‡A¦]bHÔÒÈdII@—V&H –KzñH3Å°PŒ„T0¡ştY¾DĞB	UêÙAÉI§¬èPFcpaa4"ÙlÎ6À“OØ@|í‘Ç\™S—Ö°’à^U¦ÿL—-h8×kÆx9@CÖq¨düXœÚªÔÌÚ®',ğ•ñÂ%• <Åñ$Oíyc—d•RVqu@ÂÎi å@–%¤xsD–9`ÕÀ%%´Ai-¶ ¥µ¯—qÀpY·Åò¡º›r'îàĞE¿>ôFZ0E·d
-Şì!%H€,0ê@?L†ÉDë€€ÿ`Ù%wce©¢¡ÊâplÙ¢)³áÀ²ÊcŸsßŒÑÊ@@È	Lğ@S¼$0Áüì0)*>l€<ÒÀ:d™Æ³†&ôC°°VLğ_!M9_;¤7ÁŒds~ÓO`ÿĞqç#€¢d5%ÂÜn (»"İéjÅb…8 Kv*ÀIïpÄ$ä×¹ñ~ ÷Ç,GÍ2ƒæZ ì3Âô\pÁ½Ä:´á¢šbÀdOOñ%u¡„¬²5[–j¸!è"<@ûñ÷ÿÕI€c±j—(Œ@Ë‘Ë#Ò †Œ#(9`ZØò§Uâ[jaŸ²D$‹õzúş:H#¬¢c@€Lå…}( •h ù–Bwø¬#°„0Ãb`Éô`‹öÚ \	³¹DªXğˆÈƒJÜÍHfÓ‡´ˆæ6èFS”/7À$¶ ÂPà,,xÿ^¼`w8”Bhp"3ÌĞ,1»¡™;ÂÁ‡€ˆ kN:¢Å@mq` Æ@tO)p#ÊêÂ‡†¸ƒ›“#%kr³6€AoMi”—ƒ#<ƒTYPÔ ±ÆEñj’aÃz¶¥¡@Ôáj•œ%9(p/µÈÍ«` 1ˆ²/ò€}}:@]nCJñmÌÅt(¨äqU¼\ÆGğ¸*
-Àm´Ü¦laŠ´ª!‹Y$5hvªDöQ¤`Æ YHÁ$K’$j•‡Ö¥%TŞDŠ)<ÉÍB,Œ:¡0d„¿H‹® Å@å
-pœ â¶ŒdşlÙ.ÿÌpª°¯\Ğtdv·Q€¢Tuè3–ñªèÃ
-„ÖÃr /tÉ
-Å± =,€ÁmÉ¥f; Ë°À¨€%8£ ×àdY†¡Í”BÕ`_Qj¯ÆB3i¨piƒè ¼ĞCLK6Çt®”~Z‘>ê€$ÅkKó’XTÿÙRxÃ„AÀ?dbØE3ñjµñ½HjñR&âåÆÙù@¨  Ø:Óä°U×¨’–ÙcÇ›q
-ÔêIa=}2¤.ÌFR³’*1†,€ Sè+2c„Í¶F[ÅQÿa+,D2¦‹ÃNÚ¹KŒVP‘hfˆÿÕ¸ÃÃV9qÔËD°°‹JÀêí""$cÔ5º¯DJˆ®8 4{°Š`V"»(Æã 1	lWË™ß&º[ìbxFšálLc?úÅ!
-¯1¤ÔÀ6˜Ã(&¼y3.‰*ŸõîàyHÇÎµ ŞvpôcÅ‡ & i&<×Öf¸;W×{ªf!Å.Ì˜DÄ×(HÅ`¢	C`!€Õ Î,BE¥4uÂQ A	b†™¼.ñ’qÂ˜ "a²'©À¶$e– l@#£­œvŠ-¡¢eÍD
-n“*7'—˜*2| ¯1ÿTD©üPõ°$…
-À¹›´X7X¸^ ~qb,p%.ñ<Òbâ ¿ØÓÙç€ôD`Ï#èd„ÔÉD €’¤À% 3JŠÂ<=¯ Ø˜¼Š€Çüezéº2–wG3Š@4‹'—Qì&±ÓW¬À¯O¤İ6¸s¶ı$ ƒ+®¡BTÔÕê†úÚxkPÀÒ‚?aºQbw‹J°\Ã<°JF2Ae¤9: ôZ«!&'2Cg0hù†m»" 4O£òÃ‡º6ß1/IlÉX6Lü»À*I/:8aòñì}çÀÿoSÈ´.¢.¤±„é˜~"ĞÖ0Ã¶“š­ŞtŒ|ê=ĞîØÜƒE{F©úq’*†™ŸH^
-˜ ‘ ™RÔ†KeBõ<#vlHÙÆ„gÌ 2§ı‡r,¸kkøy!^Y–C»?éÛ’h;^ygÄ;îÀ 
-|déÂx)@‡ï\aW›gôÄ‡--` &ÀQ›ìA²@JÍŞ:Û7î@ Z%Îòïç©ü Z}Øİ^bœà‰­{’~ãe
-@`‚2Ğ ñ"T]j› ¸º„?ß<\fìsÈïÓÊNT–ÃqvZtBòLæ‘hÔUßéCG ÿ	$‡BHFãí ìÕ³Œ^:ĞİŸäV¾€Šù€!À=8­A¥@8Xàö¹ÍAø\üO‚pV£ı@Û%Õp˜†pCåùÀî\Ã – „ÔíQŞÛØ¦YLüÀ lÎlDÀ XÌC	ÁŸ0ÑØØ|
-FˆÊÁŸM$<a<Âş	½]@â@Z0‹E¨úDØB¼Âº0€´«aBÄM¯D=ÔF˜ßdŒ¢ìÁlüÚ<,‘ Íøå!bÍpM	FÖ!î€ŸDŒW³éÛ<@uu
-À´£QG]”@³EÚ¨–ÂTÁH—MQ€,hÿøPŒøHY˜W
-4„4 8&P€(@‚×•ÁÚ…CğÄøŒ£µÁNğ
-1¬âSùÅ˜bF”hÑ„h†):
-$‰İ`ÕQHÑı‚xÃÿÈ)˜ÂœDÉpXc! …6	 Òœ#€3¹™6µÃ¼ $Ô‚YÃè	)|ÁXô›mÂ[°U—@’#¹L#ä	#üH6‚İ8¨C!Ì#XO0DòÊ
-ÜK	pZ–Œğ"0Š€5H@4<À TÈxÄı#fQ1¬ gÀx%B´dØ!‡cÁ¢+@ÂøŒ—¶ ‹Ìİİ\C6WD2ÈPr‚¸ğÿ‡)
-@là…Íõ0 <ô„ \AÜÄK;şL{˜IA ®9—]ĞÄ¤(C•™#¦Ê(0£…\"¨ÍœÖ-Î@)CYt=äøÄõQ,lØX˜3à—¼Y¤‹ø
-ÖL–Ü…½åQ¼øG°ËQìœæMA)XÌtŒ£ÅË(ÌÀ	Ü]î E¸Q‰ÏÖ”ÁLÒÑŒ}X¾Aà¹ÃÁTKÈ (gºW{1ÂÉØB~ÔJ´q&ì$‹˜La9b&ÔØú±–Un^OeÕb#€0–áœ w>ÛD>Hàà—3ŒÚ/P<•· ‰MÅ#Ä8EÿÿØ-Í>0İ$¦ÉtÉWLä@ê¡¦ÉÀK8Hİbî$4ßkChh&o˜Éã˜]Ø¨YüLeH2Ã_5ÅC(ĞäBä¤h0Íª˜Eä4†UÆ4Âv¬ÜÃQ¥N8Î¥ã”¤¼I‰‚&‹hHPDp,L@‘†-àİ¼€ËÄRığ€äÒÏ¨ŒOÙE¼C3D…/0ˆ$šÛIÀa2ÜÌ]±F8Á
-HT†AÅ\Á0}–(üO	¹ÑXŒ˜ÊN<@ˆŞ›^ô¬ÌäAÜÌPZ¼­Àl€ˆdD-4[¼¡OVe<,”–A(¨ìÛ2ĞA1pÿ–a$@‘âÀ±}“ZÔ€‚8t3T„CØB{ š;Æ*Ì*R”Ht™ì@¸A¼}Ò¡$Û¡pF@ÖÚl!-•aÁ.PLšP@$ñ@ÛíŠ$•€m¸çPe¬€;HJ—¸C­BÑ*4ƒvÍE`»6OnF’«&ˆÕJPÉ,Œ¼Lœ;P €œLê‘Ú#RÒ¼™…,–Á?°¦VCPø¸Ú…[Ití-N=&ÇJŠDšïà`×:ÀÄÇª†Í„ï(aöÉrÀC/èÑºtW•ÔƒÑ‰AŒÒÒ €åT|Å"…ÎDê@¶ƒã„ƒi­U³%šP…œ¸ÿ’é –5µÅˆ‰¼}à/œ$ÑNŒ€’L­RT-ÑPĞkÜHpìU¼ıìE3(AQšJÈ0fÌ‹hÔ&=v¤è‘¼ƒ ‰„œ/)4 Ğ ˜2¥	@HÒ)€W=‰KIAöaÎÀ,HCX Ñ¬×|åØf‰|ƒˆ;‘†ÖB+Œ~å¢]<A¤©à­ÅôáBíŸÀÃŞÏ0äâúK†ü€	˜„úÑkıBpîŠà‡é5·C¼‡1üKÀt—¤°àPO`@ÖÀ$/|üËx4/·<B$P ~  ®  ;€
-°Å¹¶Ln„	DÿP@¤Õ,,yZ¯p-aÀLÔÅÎeCl…1äH ÙV®ÔÓY‚	ˆåCv\ó¢:ÍÓ¼Ó!ĞN3áIìAmtÊA±‹§±ÂÍŒ!”_4äxÉGz| Ï( „†+-Q« ÄÈ0@6\Æ&I+(.~*åæ_Lğ;…Pƒq®
-o02,+íÅ2Ì°ç¦å
-C¶|@ø^h É±]âQ…éL‡2HFZ¬d’èÄeC)0×{ÍF§ÆQ¼ğÄW¦^¾ˆ©²°z„ßH{øÂtQF2°íµ*ë'DEsdX˜ÀtM‘´íõ@LÿÃT!ÓCÜ™¦ºÔ­F¬.&Ã@¬8å“…/VP)jÀ@nâ8HÁ
-Lc/zìĞT‡…bCüšk%Û±1Ì†!èÃ$ùÎïh•Ej<¿˜…-±+Ïüq1¤Ç{ª_IGú1˜Åå`—]œÇ'}©}‰X\¨™…*0æÛÙ”Ó¤€¼ÇxîáÏ)3B?ØJZ¸Œ­‘^¾ÕÊyÁ;}0€%á`‰X%±i¸Í¡lhjè B¼T	ü~ÀÁğhæŒU2Zæ€(İÊ—Ã¤QOšuë[ú^  À›ºğ”=`çÜC.&IÁ:?l@òÿÀTB—L€(\@ëØ†ÅĞ á"mØÄÅÉàØzC$9ÖJ'ˆ-œèˆ‘á¦+)xmŸ\Q#´  $WÇbĞLäGYfèÄ}“iØ ˜A-²Ÿ#ˆ1¨B””€\©_ÜøPğè†;âB¸¹S1?‡ú‹`ãÍö.\äD;xÛÎ/eÒU«@¤úfÀêIÜÂT £ĞƒÛzÍh`	Ì„ù²ƒ©¶,ñ\/ÇhæPêT!«I-L€È„×ƒd„ïÎ‡„ÜŠ›ˆİÑ¸Ô- ĞÆÀÃ 1Õ
-†ı&ÑqÁÁ¢ G±i‘1!Ç~²€ÄÄ«ŠRİÀ1µ0”9-€ÿ–Š´·À\ Œ) L€oÈ5°
-LL80D1¥ãx’-˜NY4e÷õ\/Ğ ìıEwËAmÈAËÚÉç\„>„ã^H-¸€Ó°Ï“˜.El/Ù:pÕHÀ80ß,(¡P,C(~c‹†ÏTlg×ƒTÂV‰€l($ƒyIô£IPˆ2œÊælÆ\u¾)`Ìt«¦‘T7|A—ÄN„ŠI‘™zdHeÇ;°5<0å|!îO5–hŞ&gÎ¸‘{Ã#Uê–‡”ºO!Hp¬„à’ää@4£@=† Pˆ	†ÿˆ-¼»İ
-V."¤§ñT »´ÜZ"«ùLIÎå.•¤†NVBë±Ám4³pF®	ÛB‰*S¡*Óõlh)Qƒ]«Æ°[‰±K¹17àq—À–4€FŸğ€³$0Ç: evXá9©À ÔÕÊãE@w×8îš¯Ï@)Ëec@»…äš¤²2W¬AÛ=ğå¢ ¡®ÔBX À_{$ÈN ÎeaØïE…|¬‹´C?Qx8ş8SªÜ¢¨|A}@ÕùLt>VøÓ««S\‹”\;b$CÇØëJ¾äfK¶‡P\ÃÎ|Áú|´WüàÿQ@]‚Ü
-H`ÉûÇ¡˜˜	ºf=ÕÕÙGÎ^ÕÅƒnÄ7ş@4äÄçš ¥Cöà!‡]3J€­×úH2Å^0 Ûk‡…T…A8èk¶ĞvÌœ`½“iÆßéï×çÀ À*®äJnV<=ÔTD!¬q©QUáº‘e~AP™á®‚ù”Bsz¬Î îRúŸ$½È÷jÀE:^âéVµ‚Nˆ-\”… Øêº´B+¬"ø­ã—2gC¨Ì»2™iôX!›šíÂ4…‘xÁ±×Ó·d7½Ãl¤Ÿ,@Êlƒ•“€IÃx)É<IúEÑ/l¤±MùI˜‘lKõ¿ÕéWÿ€O 1K"`•¹´ÇòL×öçú7x "ŠE$vjT âri $¥!ˆL"‹CQl,ŠŸ¢ `Dƒ³tİ¤%FhÔ1ùÒ¹ ¤p° P±` ğ‚a´%Ğ@Ó €@qAi SÑ0„`àÃƒšªºÊwX˜ ä€Aá àğ ñ0q"óp897‘p õÓå ` m ˆ0‹a|³vA•M’0cÛüíŒ»hàÜp ³PSº H¦0ñĞğÀ\ÉAXp§•Â…SUp@B,f¶8àVˆƒ=2XÈ`€ ÿU#2‡ ˜¤’B@¬Í¬!w
-Z¤eb	¦Í"lA·¨Á-˜qA u¢VÄõ „ZKzı
-Bi²9 äÔ	$´€!ÑA¶"^8b`0E^‹	ÀœER@D1ørñtè˜	i³µiÚ§8NP¤íKyBÃzşœc  ` aÀ!\Àë¢‚„9¼™“Õ/(‹3l‹‰ Úå¿´ VÃ#­`Íà¹¶™‹šßÃaAA­eXÀÄBD Üi#´z°>IHÓÀZõ@Z@zİÇ ¶>E¨ğ@`÷ĞE‹3ìÿ×ŸÕ,•@BÄQ`-IwAL`Îl$FÌT a5!áÀk00wD&¡
-¸•@zëİ¸†õ0Ë  Q
-Gd”±@
-6°c0°B.4Í¡ ÉØ::Ğ 7ÔTœ”æ„A9€T•¤%$C#\FšidÈe ˆ[#´$™8ş¹Ğ	(cÁ¥”ñ Q ƒÀ*Ğ	B Õ•
-…`(maE„5`@Üq³Æi’ÖÀŒ‚€t6Ã©[ªêˆ N¥]õB‹.€€;$4j‹ÈaJŸ Ê,+r´`ÜÿJŠ†Ï-	Ìs­v0P›†@Õ\ ¥§3€›È	A)X<µh•¨‹"Ô ëQ%Ğê”<Etœbà‰‹sè£M”âNf´€P³×Æ-R•E¨…À›ïìÑ/Ü„A«Ì c`HçajÊPAvi&İ–1ŸürË•Æ²š4sä@úƒ@(óœc[˜a À`0vÑ]>9Ğ×=Ü,}SñaÎej OA jSB£Ñ3	ï ƒ@(ò–@ †–2¸­ˆ’<`¨|1\PàÄƒ[ß3ƒkËA¯³À.d3¢ø
-Şê]bu…4·q 4qSÿh¡ü8)bğÆjelÛÀ X:Zä¢×= tEÜÁRÈ{„@KÙm1ìNÉ†–À@Ò#°ª@œqĞÀØ•3o$6 .B±|ãCÀ 8 ’'Ü=!­ÉA/?Š <èêÉtOJgääæŞz¬Ìˆ¤ŒéŒXÍÈÆaâ6 ¡8¯:ÍHÁP`Õá2ØŒÔ=7É€·hÔ5úÛ¢>÷È[~B1kˆn9ÂzˆÄ,Ğ}‰ d€=p¡U©Ê‚e—8x¶y ùFD ¾c[‚“šS¦ØÍP@³ƒ{„w¨"l·‚ÿ°šbr¬ÆˆScKZÈ6
-ÿd!>¿qƒ4p(ÁÑ0,üˆO)
- 
-‘@àfkØ^  œQLÍ‰„xâ…/­ˆ;³ÉN)È¦Üá9Ô’êbo0Às¨â†.©€dQÃË-ñH28êBˆ€G`$»T±Ìt6ZÀ4°tÂ=†e$„Z²‚Ëp¨%~ƒJQnÁ9D6ÇoqFœ˜¡1Ì %ÌR72YÂƒ(,f”Ğâ’œQ‰»ÉÃJNb7œ…'Ğ£D®Ó‚ÄéB˜7Zä"q¡Gc$€ä#ÁÑÚ¼°÷@Æ‚C•19&H£Î–ª
-é”Cÿ'1¡’Æ 6»`h[vr@ş8£C.|A…à!7fĞÀŸü¬)`E’FmK*Øƒ‹œÇÎX’<qYY„à–b€0<¢E»&T˜*¬58x—i`s r/rÃâƒ"€mxX¦MÏªŠw|‚)€ 7ŒI°MT6‚X%$ŸEª÷Ói‘T$R¸Gå.°	G,Q1hmìW0t–C-â­U°jõğB `’‰Ø¢%½z‰¯RÃ	”–Ì.ºIÆ$°’kKõ±Y‹Û…ôË äl¬\ˆF’+Á@s@©E@¯iÔ#P8‚S½ƒBbÿh––k£Ö ´|qKB–[ŒV ·@„vs‹ŞV˜îÀjİ šg·ˆHâxiß  *ˆfwòÒ–R 8)\$<8e@…­ÈM¿‚íÂ’™Ş³‚-Xd?rBäÍ¬:8é'Œá°+‹±V¸`™›ñ@o‰ÊpğøÑ[GDÂ4VsÈsFµ…ıØlœ`lÀ8Mf†ÙµŒÃ6ğG6â~àBrÀÇwzØk™K œ–ô}×Âƒyp`C^ÔÀm>ö±áh°<b§‹˜Ç-²a!ğˆ\#Y7T¼ecäVrˆ“Jş‡	$$+n9ÿ
-`\çà‘”hİ]bÁ¾ÔA°AÀi.0^¢È„<œ"Né0 ¢3s*îèô¶ltba‡a"¸yè]bÆ€IØ×\kÊ€Ñ¸Öâ¬ƒ³ÜÁ)%À‘4¼–:ÀË ·5Æ t¬mJa|5nŸ+ò…;Fˆènvá‚x ¾ÔĞ3È2ĞªøxĞÂÅøí?[A72šaÎ°êbwÛ²Ğ·s»*º«ƒÄ	%ƒµ-iÇ!+Í!«¤imö¥çÇ-†LÀE±ŞÄ¬ÕY£·>hà<}ğ³G HŠ!¸s‹äÂÅN]"–µâ o§X‹ĞQÿá‹TMöB¤‡Ä&iàÓcÌ{Rã=TE–ä²ˆjÈd&àĞup€ºÎô.Öera®yÀ%Ás‘¦†»4Ç-Hš·¯~V(Œ2†Ş”Zæw1 Ê×(„WK	·z¥ e²F/”&Éìo£k”u/x¾j1>!K*W†ùJ@»ï°.X¸ñBÄƒÍe,Î$€à±0·n]òĞßˆ\K)ú¥ò‚ëÏ…@V†iœ½!"®’	Ô¨ ‚n8«œ“°„ˆ@{Á`G|PÌ^ø–I@€w¤
-
- ÂÖÛæ‰îaA6¿2
-ÿ0	VgcşgRcà]``Ø	àVvïÇ~rÌ°kG³(€YÚ!¶6ÎóßQzÃĞI“1xav‚Ş±?Ã6ÅkĞZø-U]|øãE Òm$ï%|ãtïF™å CÒ9@€
-á40~JØ6ú%D$c)„^ñ àWm‡ ,×Aj“U3€3dg¾.‰q[H³(1ªA¸7ÚwgQecÈ8xƒÇ‡á Xql4 !h Wğ?Rç¥gà_±â/ˆF2À‰_pº„ˆaa¸Pmÿ£dVA€²…çñ'q 0×
-Q0t!¢‰|a‡ÀÕVbxŠª ,öĞ[§ÑˆVÀd·vDö…b2i 6?¸
-#‚’W ‰iP rŒÅØ`$°~arë‡‹^‚Ÿ±èhç¨JKR…âh3Ğ÷¨c˜ûè5ö85`8lùÙXÁ+æB„iS‡ FÑE iR‘‹br‘IC%à ’“4bB ß“w‰’ ,ÂÁ@:YÁâ–’3ù0ı’(Ô@˜ÈÖá-4é“ÌB;$£g#.õø“GùÅ6MAà" —ƒ”Qé«Rÿ-˜<­2 @ ï(•]©
-ŒQ- …p0ıè•gù•R „cFd–h	—0—s¹¶Ñ8V€kí“£Gpá‡H—4éa[€RLl·7œPC`b˜g	,A/ ¡Å‰âÙ4™¬Ády”òÀM8*A;ÜD™¦Ğ™‰”£šY1xQšBPÆš¿Çšg©UåT4²	´B™ò–›]i	Ü )ŒœÜDUwaRm šxœH¹Ñ_ …T(q'•çX>øB(9S&Õá‰’‘b	ÚP<x5,Ã& Äè?Izv ÿÉÅ ·â1Y°ŸÙ	Ÿ€+†"`KI Ÿzk '™v10 °dpO‘Ôq €3dÚ‡OQ+²Z
-xQm‹ÃSçô 	E}µE/¶‘`­,Š¢ßFĞ ×B´ñIß´B
-¤Òaøv;zc4X}f›mC,fƒ¢óp	Í¡£Lh0P+_02áMÅqBÓa$„ğ  ^J\*|øAsp	ÒT§ÂW{ƒR’!q*§*Øé*¿FyºWiº%u*'õ=\¨W/”ğ1ññ¡…¨£•¦âÜˆP˜‘sĞ>zp3á§’vJIFª¢ª¯±D­¥Jåâ_ñáe’«ûX 5ß¡qPò!‹àqÇbLd½*|´Æ>2 ÍÑ6yÕ(Â#:éÃ¬â87’ö8Eğôu`$B)ˆe”Ù
-„;t2±*µ¦âv®èZŒf¤	ål.RWšÀpñ*¯@(·Àa°¤ÑaMıº
-6ğ–ïbQ{Šƒ¤8ğ–$Áo[Œày¦Ÿf±)+•ë±G	²!ë“#K²3i²'‹’«²>)°-{”³)³3{Fd³9«³;Ë³q ;            1   <   R   p   ‡   –   ¨   ²   ¸   ¹   ø  Xñ  Xı  Y  Y  Y&  Yl  ]“  f‘  fš  fà  k  m  m  mT  q{  v[  vd  v¬  zÔ  }  }  }\  „  „Û  „ä  …,  ‰T  C  L    ‘³  ¡ä  ¡í  ¢2  ¦W  °‡  °  °Ø  µ   »  »  »`  ¿†  Êš  Ê£  Êä  Ï             =             
-o
