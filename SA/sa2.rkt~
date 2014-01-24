@@ -1,3 +1,0 @@
-(define multiply
-    (lambda ((a <number>) (b <integer>))
-    )   
