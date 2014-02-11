@@ -268,19 +268,18 @@
 
 (define step-dfa
   (lambda (dfa state-name symbol)
-    (letrec
-        ((loop
-          (lambda (edges-lst exits-lst)
-            (display edges-lst) (newline)
-            (if (member? state-name (name-vertices (vertices dfa)))
-                ((display edges-lst)
-                 ;if (equal? state-name (name (start (car edges-lst))))
-                 ;   (if (equal? symbol (label (car edges-lst)))
+    (if (member? state-name (name-vertices (vertices dfa)))
+        (letrec
+            ((loop
+              (lambda (edges-lst exits-lst)
+                (if (equal? state-name (name (start (car edges-lst))))
+                    (if (equal? symbol (label (car edges-lst)))
                         (loop (cdr edges-lst) (union exits-lst (list (finish (car edges-lst)))))
                         (loop (cdr edges-lst) exits-lst))
-                (loop (cdr edges-lst) exits-lst))
-            #f))))
-      (loop (edges dfa) '()))))
+                (loop (cdr edges-lst) exits-lst)))))
+          (loop (edges dfa) '()))
+        #f)))
+      
         
 
 (step-dfa dfa1 'd 0) 
