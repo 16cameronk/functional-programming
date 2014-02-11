@@ -256,31 +256,45 @@
 
 ;;; ----- Problem 3 -----
 
-; Return a new list formed by dropping the first (up to) n elements of
-; the input list, and keeping the rest:
-;  (drop L n) ==> drop first (up to) n elements of L, keep rest
-
-(define drop
-  (lambda (n L)
-    (if (or (null? L) (zero? n))
-        L
-        (drop (- n 1) (cdr L)))))
-
 (define step-dfa
+  (lambda (dfa state-name symbol)
+    (letrec
+        ((loop
+          (lambda (edges-lst exits-lst)
+            (cond ((not (member? state-name (name-vertices (vertices dfa)))) #f)
+                  ((and (equal? state-name (name (start (car edges-lst))))
+                    (equal? symbol (label (car edges-lst))))
+                   (loop 
+                    (cdr edges-lst)
+                    (union exits-lst (list (finish (car edges-lst))))))
+                  (else
+                    (loop (cdr edges-lst) exits-lst))))))
+      (loop (edges dfa) '()))))
+
+(define step-dfa-3
   (lambda (dfa state-name symbol)
     (if (member? state-name (name-vertices (vertices dfa)))
         (letrec
             ((loop
               (lambda (edges-lst exits-lst)
-                (display edges-lst))))
-                ;(if (equal? state-name (name (start (car edges-lst))))
-                ;    (if (equal? symbol (label (car edges-lst)))
-                ;        (loop (cdr edges-lst) (union exits-lst (list (finish (car edges-lst)))))
-                ;        (loop (cdr edges-lst) exits-lst))
-                ;(loop (cdr edges-lst) exits-lst)))))
+                (if (equal? state-name (name (start (car edges-lst))))
+                    (if (equal? symbol (label (car edges-lst)))
+                        (loop (cdr edges-lst) (union exits-lst (list (finish (car edges-lst)))))
+                        (loop (cdr edges-lst) exits-lst))
+                    (loop (cdr edges-lst) exits-lst)))))
           (loop (edges dfa) '()))
         #f)))
-      
+
+(define step-dfa-4
+  (lambda (dfa state-name symbol)
+    (if (member? state-name (name-vertices (vertices dfa)))
+        (let loop ((edges-lst (edges dfa)) (exits-lst '()))
+          (if (equal? state-name (name (start (car edges-lst))))
+              (if (equal? symbol (label (car edges-lst)))
+                  (loop (cdr edges-lst) (union exits-lst (list (finish (car edges-lst)))))
+                  (loop (cdr edges-lst) exits-lst))
+              (loop (cdr edges-lst) exits-lst))))
+    #f))
         
 
 (step-dfa dfa1 'd 0) 
