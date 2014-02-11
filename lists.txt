@@ -1,0 +1,56 @@
+Topic: Lists
+
+A list is an ordered sequence containing zero or more elements.  In
+Scheme, lists are constructed using the 'list' function:
+
+   (list val1 val2 ... valn)
+
+Note that 'list' is a regular procedure, so val1, val2, etc. are all
+evaluated before the list is constructed, just like with any other
+procedure.  There is a special object representing an empty list,
+which is called "null" or "the empty list".  It is written as a pair
+of empty parentheses
+
+   '()
+
+The single quote is necessary to prevent the interpreter from trying
+to evaluate the empty list, which would cause an error.  (Actually,
+DrScheme will evaluate the empty list to itself, but other Scheme
+interpreters would produce an error, so you should get used to using
+the quote).
+
+A list may be "proper" or "improper".  A _proper list_ is defined
+inductively in the following way:
+
+  1.  The empty list is a proper list.
+
+  2.  If p is a proper list and x is an object, then (cons x p) is a
+      proper list.
+
+In other words, a proper list is either null, or a sequence of pairs
+in which the cdr of the last pair is null.  Thus, by definition, a
+proper list is of finite length.  (You would think this would be
+obvious, since we're dealing with finite computers, but you can have
+circular list structures, which do not have a well-defined finite
+length, and are therefore improper).
+
+The 'list?' predicate tests whether something is a proper list:
+
+    (list? '()) ==> #t
+
+    (list? (list 1 2 3)) ==> #t
+
+    (list (cons 1 2)) ==> #f
+
+    (list (cons 3 '())) ==> #t
+
+Because lists are implemented using pairs, you can access the first
+thing in the list using 'car', and the rest of the list using 'cdr'.
+To obtain the ith thing in the list, where i is an index starting at
+zero, use 'list-ref':
+
+      (list-ref (list 'a 'b 'c) 0) ==> 'a
+
+      (list-ref (list 2 3 4) 3) ==> error, index out of range
+
+

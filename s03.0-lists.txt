@@ -1,0 +1,214 @@
+Topic: Lists and List Operations
+Date: Jan. 31, 2014
+Examples: lists.scm
+
+Just for recall, here is how we define the list data type:
+
+1. The object '() represents "null", the empty list
+2. (cons x L) adds a new object x to the front of a list L
+3. (car L) returns the first element of a non-empty list
+4. (cdr L) returns all but the first element of a non-empty list
+5. (null? x) tests whether x is the empty list
+
+Contracts:
+  (car (cons x L)) ==> x
+  (cdr (cons x L)) ==> L
+  (null? x) ==> #t if x = '(), #f otherwise
+
+In class, we covered some basic list functions:
+  length (including tail-recursive version), map, append
+
+Here are some additional useful list functions you should know.  Most
+of them are provided by Swindle, in some form.  Note that `reverse' is
+part of the short assignment, so don't work this one in section.  :)
+
+
+--- FILTER
+
+The problem (intuitive version):
+  - Give me all the odd-valued elements of your list.
+
+    (odds '(1 2 3 4 5)) ==> (1 3 5)
+
+  - As before, you don't have to restrict this to just odds; how about
+    all the elements for which some function f returns a true value?
+
+    (filter odd? '(1 2 3 4 5)) ==> list of those elts for which odd? is true
+    ==> (1 3 5)
+
+The problem (formal version):
+ - Given a list L = (v1 v2 ... vn), return a new list consisting of
+   only those elements of L for which a function f returns true.
+
+How do you do this?  (Build this one up cooperatively)
+
+ - If the list is empty, then there are no elements to match; so the
+   result of (filter f '()) ==> '()
+
+ - Otherwise, look at the first element:
+   If f returns false for it, we DON'T include it in our result.
+      Just filter the rest of the list, and return whatever that brings.
+   But if f returns true, we DO include it:
+      After filtering the rest of the list, we'll cons it on the front.
+
+  (define filter
+    (lambda ((f <function>) (L <list>))
+      (cond ((null? L) '())
+
+            ((f (car L))  ;; we DO want the first element of L
+             (cons (car L) (filter f (cdr L))))
+
+            (else         ;; we DON'T want the first element of L
+             (filter f (cdr L))))))
+
+--- APPEND
+
+We did this in class, so just throw up the definition and take a look
+at what follows:
+
+  (define append
+    (lambda ((L1 <list>) (L2 <list>))
+      (if (null? L1)
+          L2
+          (cons (car L1) (append (cdr L1) L2)))))
+
+How does this work, in terms of box-and-pointer diagrams?
+What do these expressions create, in box-and-pointer terms?
+
+  (define A (list "x" "y" "z"))
+  (define B (list "p" "d" "q"))
+
+Now:
+Q: If we print out A, what do we get?
+A: ("x" "y" "z")
+
+Q: What structure does this produce?
+
+  (define C (append A B))
+
+A: new boxes pointing to the elements of A, and the cdr of the last
+   new pair created points to the beginning of B.  (Draw these in
+   separately, so that you can see the sharing of structure between C
+   and B).
+
+Q: If we print out A now that we've done this, we get?
+   ("x" "y" "z"), because A has not changed
+
+   If we print out B now, we get?
+   ("p" "d" "q"), because B has not changed
+
+   If we print out C, we get?
+   ("x" "y" "z" "p" "d" "q"), which is what we wanted
+
+   Notice that C _shares_ the cons boxes (pairs) belonging to B.  No
+   problem for now, because we can't change any of those pairs once
+   they are created.
+
+It's sometimes hard to see at first how this APPEND implementation
+works, but hopefully this example will give some insight into how the
+shared structure.
+
+--- Combining these Functions
+
+The functions:  map, filter, ...
+... are provided by Swindle.
+
+Use them!  Not only does it save you typing and debugging a whole lot
+of recursive loops, but it makes your code easier to read and
+understand.
+
+In class, we looked at a simplified version of the MAP function:
+
+Reminder:  (map f L) applies f to each element of L, and returns 
+	   a new list containing the resulting values, e.g.
+
+	   (map add1 '(2 4 6)) ==> (3 5 7)
+
+Actually, the built-in version of map is more powerful than this:
+Here,
+ - The function f takes one argument
+ - You can only pass one list L
+
+In the full version of map provided in Scheme,
+ - You can pass any number of lists, say n of them, as long as they
+   are all the same length
+
+ - The function f takes n parameters
+
+For instance:
+  (map + '(1 1 2 2) '(10 15 20 25)) ==>
+  (11 16 22 27)
+
+That is (conceptually):
+  ((+ 1 10) (+ 1 15) (+ 2 20) (+ 2 25))
+
+
+--- Other funky examples, for fun, as time permits
+
+Here are some other neat things, assuming n >= 0.
+
+Return a new list formed by taking the first (up to) n elements of the
+input list, and discarding the rest:
+  (take L n) ==> first (up to) n elements of L
+
+  (define take
+    (lambda ((n <integer>) (L <list>))
+      (cond ((null? L) '())
+            ((zero? n) '())  ;; could use `or' instead of two cases
+            (else
+              (cons (car L) 
+                    (take (- n 1) (cdr L)))))))
+
+Return a new list formed by dropping the first (up to) n elements of
+the input list, and keeping the rest:
+  (drop L n) ==> drop first (up to) n elements of L, keep rest
+
+  (define drop
+    (lambda ((n <integer>) (L <list>))
+      (if (or (null? L) (zero? n))
+          L
+          (drop (- n 1) (cdr L)))))
+
+Selecting an element out of a list, by index (this is built in)
+  (list-ref L n) ==> return nth element of non-empty list L
+
+  (define list-ref
+    (lambda ((L <list>) (n <integer>))
+      (if (zero? n)
+          (car L)
+          (list-ref (cdr L) (- n 1)))))
+
+
+
+
+--- Other randomness
+
+You can sort a list of numbers using Swindle's built-in sort function,
+or you can write your own. Let's implement merge sort.
+
+First, you need to know how to merge two sorted lists
+
+  (define merge
+    (lambda ((L1 <list>) (L2 <list>))
+      (cond ((null? L1) L2)
+            ((null? L2) L1)
+  	    (else
+  	      (let ((a (car L1))
+  	            (b (car L2)))
+  	        (if (< a b)
+  	            (cons a (merge (cdr L1) L2))
+  		    (cons b (merge (cdr L2) L1))))))))
+	      
+Now, you can sort, using take and drop to split the input list in half.
+
+  (define merge-sort
+    (lambda ((L <list>))
+      (if (< (length L) 2)
+          L
+  	  (let* ((half (quotient (length L) 2))
+  	         (first-half (take half L))
+  	         (second-half (drop half L)))
+  	    (merge (merge-sort first-half)
+  	           (merge-sort second-half))))))
+	       
+You can go on defining cool stuff all day.

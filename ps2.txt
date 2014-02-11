@@ -1,0 +1,71 @@
+Keng Low
+
+Using mathematical induction and the Substitution model, prove that
+
+	(exptmod b e m) ==> modulo(b^e, m)
+
+We will prove this by induction on e.
+
+Suppose e > 0. Our induction hypothesis will be that for any number
+x and for all integers c < b.
+
+	(exptmod x c m)
+
+Using the substitution model on (multiply a b) gives us:
+
+[{proc (b e m) (cond ...)} {b} {e} {m}]
+
+which leads us to evaluate:
+
+  (define exptmod
+    (lambda ((b <integer>) (e <integer>) (m <integer>))
+      (cond ((zero? e) 1)
+            ((even? e)
+             (modulo (square (exptmod b (quotient e 2) m)) m))
+            (else
+             (modulo (* b (exptmod b (- e 1) m)) m)))))
+
+We now evaluate the cond, which is a special form.  We assumed that
+e > 0, because we are doing the inductive case.  e = 0 is the base case 
+and will be done later.  Therefore we have two cases to consider: 
+e even and e odd.  
+
+If e is even, we must evaluate:
+
+	(modulo (square (exptmod b (quotient e 2) m)) m))
+
+We know that (exptmod b {[...]} m) evaluates to modulo(b^{[...]}, m). 
+Because e is even, (quotient {e} 2) evaluates to {e/2}.
+This gives us modulo(b^(e/2), m).
+square{modulo(b^(e/2), m)} evaluates to modulo(b^e, m).
+modulo({[...]}, m) == modulo ({[...]}, (* 1 m))
+modulo({modulo(b^e, m), m} = modulo(b^e * 1, m)
+Beacause e > 0, the induction hypothesis allows us to conclude that 
+						   = modulo(b^e, m)
+
+If e is odd, we must evaluate:
+
+	(modulo (* b (exptmod b (- e 1) m)) m)))))
+
+We know that (exptmod b {[...]} m) evaluates to modulo(b^{[...]}, m). 
+exptmod b (- e 1) m ==> modulo(b^(e-1), m).
+(* b {[...]}) ==> (* b^1 {[...]})
+			  ==> modulo(b^{e-1+1}, m)
+			  ==> modulo(b^e, m)
+modulo({[...]}, m) == modulo ({[...]}, (* 1 m))
+modulo({modulo(b^e, m), m} = modulo(b^e * 1, m)
+Beacause e > 0, the induction hypothesis allows us to conclude that 
+						   = modulo(b^e, m)
+
+Thus when e > 0, (exptmod b e m) ==> modulo(b^e, m)
+
+What remains is the case where e = 0.
+
+Basis:  When e = 0, 
+
+   ((zero? e) 1)
+
+returns 1.  Therefore (exptmod b e m) returns 1, which is correct.
+
+By the induction principle, we may conclude that the
+(exptmod b e m) ==> modulo(b^e, m) for all numbers b m and integers e >= 0.

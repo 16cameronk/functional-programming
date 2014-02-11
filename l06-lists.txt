@@ -1,0 +1,392 @@
+Topic: Hierarchical Data: Lists, Trees and the need for Quotation 
+Date: Jan. 28, 2014
+Examples: lists.scm
+Notes: lists.txt
+Reading: SICP 2.2 to 2.2.3 (pg. 97-126)
+
+
+If you are lost, talk with us [experience suggests that some of
+you are]
+
+----------------------------------------------------------------------
+
+TOPIC: list structures
+
+[NOTE: today, some non-O(1) primitives!]
+
+Lists are incredibly useful objects.
+
+  * Ordered sequences of stuff
+    - have first, second, etc. elements.
+  * Length isn't restricted.
+
+Here's the abstraction:
+
+CONSTRUCTOR: 
+  * cons  <obj>,<list> --> <list>      --- add an element to a list.
+
+SELECTORS:
+
+  * head   <list> --> <obj>
+  * tail   <list> --> <list>  
+  * null?  <list> --> <boolean>
+
+CONTRACT:
+
+  (head (cons x l)) = x
+  (tail  (cons x l)) = l
+  (null? l) = #t  IFF l is the empty-list, which is written '() and prints as ()
+
+  >> Yes, that is an unmatched single quote, [which will see more
+     in recitation].   Lots more coming. 
+
+Note that we don't say what 
+  (head '()) 
+and 
+  (tail '())  are
+  * So, we DON'T use them.
+
+
+---------------------------------------------------------------------
+
+Lists in Scheme are built out of pairs, and there is a concrete implementation,
+so  
+
+There are thus THREE ways that cons/head/tail are used:
+  * "Proper" lists
+  * pairs
+  * structures combining the two
+
+
+IMPORTANT FACTS:
+  * If L is a nonempty proper list, (tail L) MUST be a proper list.
+  * (tail '()) is undefined.
+  * A proper list is built by consing elements onto a proper list.
+      * Repeated TAIL eventually gives you '()?  PROPER
+      * Repeated TAIL eventually gives you an "atom" (something not a <pair>)
+                 IMPROPER
+
+
+Two types in Scheme
+
+ <pair>: anything that can be taken apart with head/tail
+ <list>  the empty list '(), or a <pair> whose tail is a <list>.
+
+Note:  In Swindle, the <list> type refers to a PROPER list; if you
+       declare a parameter whose type is <list>, the computer will
+       consider it an error if you pass in an improper list.
+
+(define a  (cons 1 2))   ; type <pair>, not type <list>
+
+  THIS IS NOT A PROPER LIST, because its tail is not a list.
+
+  (tail a) is 2
+
+(define b  (cons 1 (cons 2 (cons 3 '()))))  
+    
+  type <pair> and type <list>
+
+  THIS IS A PROPER LIST:
+   () is a proper list
+   so (cons 3 '()) is
+   ...
+   so b is, too.
+
+>> Draw box-and-pointer diagram.
+
+IMPORTANT FACT: [useful on midterms!]
+  * Cons always builds exactly ONE box.
+
+Note that in a box and pointer diagram, a pointer points to an ENTIRE box, 
+not (e.g.) the front half.  
+
+  Note:  Each call to `cons' builds a new pair box, distinct from all
+	 other pairs known by your program.
+
+  Note:  When we draw an arrow pointing to a box, it represents a pointer
+	 to the ENTIRE box, not just the part of the box that the arrow
+	 head points to (I usually wind up drawing these where the arrow
+	 points to the first half).
+
+---------------------------------------------------------------------
+
+If you evaluate B, as defined above, it will print out as:
+(1 2 3)
+
+Note that this looks a whole lot like Scheme expressions.  
+
+  * It's intentional
+  * We'll be writing Scheme programs which manipulate Scheme
+    expressions.  
+  * This is why we teach in a language with uniform syntax like Scheme.
+
+   Later in the term, we will use this fact to write our own 
+   Scheme interpreter in Scheme!
+
+
+---------------------------------------------------------------------
+
+There are lots of useful operations on lists.
+
+LIST is a procedure which puts its arguments into a proper list
+
+(list + 27 (+ 2 1))
+  --> ({add} {27} {3})
+
+LIST isn't a special form, so all its arguments are evaluated!
+[It is kind of funky, in that it takes any number of arguments.]
+
+
+We're going to be building Scheme code.  What if we want to build the
+list 
+  (+ 27 3)
+?
+
+We want to TURN OFF the evaluator temporarily.
+
+This isn't just an issue with programming languages.
+Compare:
+  "Say your name"
+with 
+  "Say 'your name'"
+
+We use a form of QUOTATION to tell the interpreter, "don't eval this".
+Have seen this on symbols:
+
+  'STUFF
+  
+means, "just return something that prints like STUFF as a value"
+
+  + ----> {add} 
+  '+ ---> +        <<-- The <symbol> +
+
+  x ----> depends 
+  'x ---> x	   <<-- The <symbol> x
+
+  (+ 1 2) ---> 3
+  '(+ 1 2)  ---> a list of three elements, which prints as (+ 1 2)
+  
+This helps our immediate problem:
+
+  (list '+ 1 2) ---> (+ 1 2)
+
+Note: 
+(let ((a  3))
+  (list '+ a 2))  ---> (+ 3 2) [list isn't a special form!]       
+
+The elements of a list can be ANYTHING:
+  * including lists and pairs.
+
+(list '* (list '+ 1 2) 3) looks like this:
+
+   >> Draw the boxes
+
+It prints as 
+
+   (* (+ 1 2) 3)
+
+It's a list of THREE ELEMENTS,
+  -- Second element is itself a LIST OF THREE ELEMENTS.
+
+IMPORTANT FACT: [useful on midterms!]
+  * LIST called with N arguments builds exactly N boxes.
+
+---------------------------------------------------------------------
+
+Let's do some useful things with lists. 
+
+Computing the length (number of elements) is one of the most basic
+operations on a list.  This is a Scheme primitive, but lets see how it
+can be implemented:
+
+(define length 
+  (lambda ((l <list>))
+    (if (null? l)
+        0
+        (+ 1 (length (tail l))))))
+
+
+>> What kind of process?  Recursive! <<
+[Can you write a tail-recursive version?]
+[How would you prove it correct?  We'll get to that]
+
+(length '(1 2 3))     == 3
+(length '(1 (2 3) 4)) == 3
+
+  * Just the number of elements in the top-level list
+  * count how many tail's there are 'til we get to the empty list.
+
+NOTE:
+  * This is a non- O(1) primitive!  ... What is its order of growth?
+   CAVEAT EMPTOR!
+
+
+---------------------------------------------------------------------
+
+Very often, you want to apply a function to each element of a list and
+return a new list as a result.
+
+  (map f list) applies f to every element of list, returns result
+  VERY POWERFUL
+
+This is a Scheme primitive, but lets see how to implement it:
+
+(define map 
+  (lambda ((f <function>) (l <list>))
+    (if (null? l)
+        '()
+        (cons (f (head l))
+              (map f (tail l))))))
+
+
+  * go down the list taking successive tail's
+  * cons up -- or build -- the resulting list.
+
+
+Like length, map operates element-by-element, not on the primitive
+elements:
+
+(map length '((1) (2 3) (4 5 6) (7))) ==> (1 2 3 1)
+
+NOTE: map is *also* a non- O(1) primitive.  What is its order of
+      growth?
+
+---------------------------------------------------------------------
+
+NOTE: map in Scheme can walk down several lists simultaneously.
+
+(map + '(1 2 3) '(5 6 7)) ==> (6 8 10)
+
+
+---------------------------------------------------------------------
+
+(define copy 
+  (lambda ((l <list>))
+    (map (lambda ((x <obj>)) x) l)))
+
+(copy '(1 2 3)) ==> (1 2 3), but it's a different list with different
+boxes. 
+
+
+eq? is a version of equality that tells if two pairs are the same box.
+  * It'll be important later on.
+
+(eq? l l) ---> always true.
+
+(eq? l (copy l)) ---> always false.  prints the same, but different list.
+
+
+
+Otherwise: can't tell the difference, unless we have side-effects. 
+
+---------------------------------------------------------------------
+
+Now, let's put some lists together:
+
+(append '(1 2 3) '(4 5 6))  ==> (1 2 3 4 5 6)
+
+This is again a Scheme primitive.
+
+(define append 
+  (lambda ((l1 <list>) (l2 <list>))
+    (if (null? l1) 
+        l2
+        (cons (head l1) (append (tail l1) l2)))))
+
+This is kind of surprising:
+  * l2 doesn't get looked at!
+
+(append '(1 2 3) '(4 5 6))
+(cons {1} (append {(2 3)} {(4 5 6)}))
+(cons {1} (cons {2} (append {(3)} {(4 5 6)})))
+(cons {1} (cons {2} (cons {3} (append {()} {(4 5 6)}))))
+(cons {1} (cons {2} (cons {3} {(4 5 6)})))
+(cons {1} (cons {2}  {(3 4 5 6)}))
+(cons {1} {(2 3 4 5 6)})
+{(1 2 3 4 5 6)}
+
+
+>>> Draw box diagram, with a new 1 2 3 and the tail of the 3 pointing
+>>> to the old (4 5 6)
+
+---------------------------------------------------------------------
+
+>>>> Possibly skip this <<<<
+[Or do in section?]
+
+How could we write something that counts the *primitive* elements in a
+list structure?
+  * Take apart the elements of the list too.
+  * Very rarely what you want, expecially if you're building abstract types
+    out of pairs.
+
+
+However, a list is an ordered sequence of object, and that can include
+other lists.  Nested lists can be used to represent some kinds of
+branching "tree" structures.  For instance [draw this tree]
+
+                         *
+               +---------|-------+
+               |                 |
+         +-----*-----+    +----+-*--+----+
+         |     |     |    |    |    |    |
+      +--*--+  4     5    6    7  +-*-+  10
+      |  |  |                     |   |
+      1  2  3                     8   9
+
+This can be represented as:  (((1 2 3) 4 5) (6 7 (8 9) 10)))
+
+Here, the leaves (the nodes that have no descendants) are all
+primitive objects (in particular, numbers).  How could we write a
+function that would count the primitive elements, or ATOMS, of an
+arbitrary structure of this type?
+
+  (define count-atoms
+    (lambda ((L <obj>))
+      (cond ((null? L) 0)
+            ((atom? L) 1)
+            (else
+              (+ (count-atoms (car L))
+                 (count-atoms (cdr L)))))))
+
+It remains to define what an `atom' actually is.  Let's say that an
+object is an atom if it's not a pair (since pairs are the only
+compound object we have seen, so far):
+
+  (define atom?
+    (lambda (obj)
+      (not (pair? obj))))
+
+
+---------------------------------------------------------------------
+
+>> Skip this, or do in section <<
+
+We can do "tree-recursion" if we want to (apply to every primitive
+element in the structure rather than to every element of the list).
+Called tree recursion because it is as if a tree structure, with
+``leaf nodes'' that are atomic.
+
+(define tree-map 
+  (lambda ((f <function>) (t <list>))
+    (cond
+     ((null? t) '())
+     ((atom? t) (f t))
+     (else (cons (tree-map f (head l))
+                  (tree-map f (tail l)))))))
+
+(tree-map (lambda ((x <number>)) (+ x 10)) '(1 (2 ((3)) 4)))  ==> 
+   (11 (12 ((13)) 14))
+
+
+---------------------------------------------------------------------
+
+Today's stuff:
+ * List structure -- pairs, with the tail being a list
+   head = first
+   tail = rest
+
+ * Repeated tail of a nonempty proper list eventually yields '()
+
+ * Quotation
+ * map: take successive tails of a list, building up the results using cons

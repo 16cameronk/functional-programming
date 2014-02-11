@@ -1,0 +1,296 @@
+Topic:  Constructing Series, Sets, Functions, and Functionals --
+        Higher-Order Procedures: Functional Arguments and Values
+Date: Jan. 22, 2014
+Examples: eval-series.scm, repeated.scm
+Reading: SICP 1.3 (pg. 56-78)
+         SBD  Ch. 1.4, 1.1 
+----------------------------------------------------------------------
+
+
+
+
+Today: Higher Order Procedures:
+  * Functions as arguments to other functions
+  * Functions as results of other functions.
+
+This is a PROGRAMMING PARADIGM:
+  - A technique for managing complex programming problems.
+
+This is also used in CONSTRUCTIVE (discrete) MATHEMATICS
+  - For building and modeling functions 
+
+It's different, and its cool.
+
+See if you really grok functions.
+  > Serious mind bender day <
+
+Today's mantra: PROCEDURES ARE LIKE ANY OTHER VALUES IN Scheme
+
+----------------------------------------------------------------------
+
+
+One of the biggest tools in programming is ABSTRACTION:
+  * Capture a pattern of doing things
+  * Package it up so it can be used well.
+More precisely:
+  * Make a procedure which captures the common parts
+  * Pass in the differences as parameters
+
+
+So we saw things like taking (* 3 3), (* 4 4), etc and writing:
+
+(define square 
+ (lambda ((x <number>)) (* x x)))
+
+  number --> [square] --> number
+
+And the "what is" description that (square x)=x^2
+  
+In some sense this captures the process of squaring.
+
+Now, let's take this a step further.
+
+   Sigma  = summation.
+
+      n
+   Sigma i^2  = n (n+1) (2n+1) / 6     <--- nice little induction
+    i=1
+
+Sigma is an operation:
+
+  * Takes a procedure, and low and high bounds 
+  * Returns a number
+
+  function --->  [Sigma]  ---> number
+  2 numbers -->
+
+In mathematics, this saves a good bit of work. In programming, too.
+ 
+Say we want to write a program for SUM(i=a to b) i
+
+(define sum-int 
+ (lambda ((a <integer>) (b <integer>))
+  (if (> a b)
+      0
+      (+ a (sum-int (+ a 1) b)))))
+
+Notes: This is recursive.  Can you write a tail-recursive version?
+	Can you prove this code is correct?  How?
+
+
+
+Similarly for SUM(i=a to b) i^2
+
+(define sum-squares 
+ (lambda ((a <integer>) (<integer> b))
+  (if (> a b)
+      0
+      (+ (square a) (sum-squares (+ a 1) b)))))
+
+These share a LOT of structure.
+  * In fact, they look nearly the same.
+  * Difference is, we're adding up different things.
+
+So, let's ABSTRACT:
+  * Make a procedure which captures the common parts
+  * Pass in the differences as parameters
+  * Note, we'll have general ability to sum between arbitrary numbers
+    (rather than just integers)
+
+(define sum 
+ (lambda ((a <number>) (b <number>)  
+          (thing-to-sum <function>) (step <function>))
+  (if (> a b)
+      0
+      (+ (thing-to-sum a) 
+	 (sum (step a) b thing-to-sum step)))))
+
+Note: this is a lot like problem 1 in problem set 1.
+
+thing-to-sum is a PROCEDURE, 
+  * Use it in the first position of a combination.
+
+(sum 1 2 square one-plus)
+  ==> 1^2 + 2^2 = 5
+
+where we've done:
+
+(define one-plus 
+ (lambda ((x <number>)) (+ x 1)))
+
+"evaluation steps" of substitution model:
+  (sum 1 2 square one-plus)
+-->
+  (+ (square {1}) (sum 2 2 square one-plus))
+-->
+  (+ (square {1}) (+ (square {2}) (sum 3 2 square one-plus)))
+-->
+  (+ (square {1}) (+ (square {2}) {0}))
+-->
+  (+ {1} (+ {4} {0}))
+-->
+  {5}
+
+----------------------------------------------------------------------
+
+
+Now, we can define sum-squares:
+
+(define sum-squares 
+ (lambda ((a <integer>) (b <integer>))
+  (sum a b square one-plus)))
+
+We can actually make sum do numeric integration:
+
+Integral(a,b) f 
+  is approximately
+
+(f(a) + f(a+delta x) + ... + f(b)) * delta x
+
+(define integral 
+ (lambda ((f <function>) (a <number>) (b <number>) (dx <number>))
+  (* dx
+     (sum a b f (lambda ((x <number>)) (+ x dx))))))
+
+                 ^^^ Creates a procedure which increments by dx.
+                     No point to giving it a name, it's a throwaway.
+
+We *could* have named this internal function using LET or LETREC if we
+wanted to, but no real point.  Not every value needs a name -- same with
+procedures.
+
+Now we can use it:
+
+arctan(a) = Integral(0,a) (1/(1+x^2)) dx
+  
+(define arctan 
+ (lambda ((a <number>))
+  (integral (lambda ((x <number>)) (/ 1 (+ (square x) 1)))
+	    0 a 0.001)))
+
+THE POINT:
+
+  * Procedures which take procs as arguments are CONTROL STRUCTURES
+  * We've packaged the idea of "adding up a bunch of things" into a
+    function.
+
+  * Using them as tools, we can build sophisticated programs quite fast.
+
+----------------------------------------------------------------------
+
+
+Okay, so just saw passing functions as arguments to functions.
+THE NEXT STEP:  RETURNING functions as values of functions.
+
+Note: this is generally harder for students to understand than the above.  But
+again it all follows from the Substitution Model!
+
+
+(define add-n 
+ (lambda ((n <number>))
+  (lambda ((x <number>))
+    (+ x n))))
+
+Note: this is a procedure which returns a procedure.
+{proc(n) (lambda (x) (+ x n))}
+
+The value of (add-n 2) is a procedure that adds 2 to its argument
+
+(add-n 2)
+  --> {proc (x) (+ {2} x)}
+
+                   ^^^  Notice that this {2} has been evaluated and
+                   stuck in there.
+
+And you use it:
+
+(define add2  (add-n 2))   What is add2??? A FUNCTION!
+
+
+(add2 10)
+[{Proc(x)(+ x {2})} {10}]
+(+ {10} {2})
+{12}
+
+
+----------------------------------------------------------------------
+
+Remember, mantra: PROCEDURES ARE LIKE ANY OTHER VALUES IN Scheme
+
+----------------------------------------------------------------------
+
+
+Derivatives:
+
+  D (x^3) = 3x^2
+
+What's D?  It's an operation which takes a function (like x^3), and
+returns another one (like 3x^2).
+
+  func --> D --> func
+
+We can approximate D f(x) as 
+
+             f(x+dx)-f(x)
+             ------------
+                  dx
+
+(define deriv 
+ (lambda ((f <function>) (dx <number>))
+  (lambda ((x <number>)) 
+    (/ (- (f (+ x dx))
+	  (f x))
+       dx))))
+
+So, calling (deriv f dx) returns another procedure.
+
+((deriv cube 0.001) 5) ==> 75.015
+                             ^^^^^  See CS 220 for what to do about
+                             this sort of inaccuracy in numerical approx.
+
+Look at how deriv is applied:
+  1. deriv returns a PROCEDURE
+  2. So, it is used as the operation, first position of a combination
+     
+
+----------------------------------------------------------------------
+
+
+Some other interesting stuff with higher order procedures:
+
+((repeated f n) x) ==> apply F N  times to X.
+
+= f(f(...(f(x))...))
+
+
+   func 
+   numb --> repeated --> func
+
+(define repeated 
+ (lambda ((f <function>) (n <number>))
+  (lambda (x)
+    (if (= n 0)
+	x 
+	((repeated f (- n 1))
+	 (f x))))))
+
+((repeated square 3) X) is (square (square (square X))), 
+  or eighth-power:
+
+((repeated square 3) 2) ==> 256
+
+
+So (repeated f n) does f n times.
+
+
+----------------------------------------------------------------------
+
+
+Procedures in Scheme are "first-class objects":
+  * All the rights of other values.
+    - Pass as argument
+    - Return as value
+    - Name with a variable
+    - Store in data structure.
+  * We've seen the first three so far.
+

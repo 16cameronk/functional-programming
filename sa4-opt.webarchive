@@ -1,0 +1,347 @@
+bplist00—_WebMainResource’	
+_WebResourceFrameName^WebResourceURL_WebResourceData_WebResourceMIMEType_WebResourceTextEncodingNameP_Ohttp://www.cs.duke.edu/brd/Teaching/dm/psets/sa4-hof-pairs/index.shtml#optionalO3∫<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"><!-- #include virtual="../../ssi/term.ssi" --><!-- #set var="sa_num" value="3" --><!-- #set var="sa_type" value="written" --><html><head>
+  <title>CS 230 Short Assignment</title>
+
+  <link rel="stylesheet" type="text/css" href="../../cs18.css">
+  <link rel="shortcut icon" href="../../img/yinyang.ico">
+<style type="text/css"></style></head>
+<body>
+
+<!-- #include virtual="../../ssi/pset-title.ssi"-->
+
+<h1>CS 230</h1>
+<h2>Short Assignment <!-- #echo var="sa_num" -->:
+Higher-Order Functions,  Induction, and Recursion</h2>
+
+<h3><a name="instructions"></a>Instructions</h3>
+
+
+Problems 1 and 2 are due at class time Monday Jan 27.<p>
+
+Unusually, Optional Problem 3 is due in Weds lecture, 1/29, if you
+do it. 
+	
+</p><p>You should <!-- #if expr="$sa_type = written" -->write up
+and print out your solutions to this assignment, and
+hand  them in at class-time, and submit them
+  using   <a href="../../sakai.html">Sakai</a>.</p>
+
+
+<!-- #include virtual="../../ssi/sa-info.ssi" -->
+
+<hr>
+
+<p><b>Problem 1.</b>&nbsp;&nbsp;Write a procedure <code><a name="g23"></a>true-for-all-pairs?</code> that takes a predicate and a sentence as 
+arguments. The predicate must accept two words as its arguments. Your procedure 
+should return <code>#t</code> if the argument predicate will return true for 
+<em>every</em> two adjacent words in the sentence: <a name="exallpairs"></a>
+</p><p></p><pre>&gt; (true-for-all-pairs? equal? '(a b c c d))
+#F
+
+&gt; (true-for-all-pairs? equal? '(a a a a a))
+#T
+
+&gt; (true-for-all-pairs? &lt; '(20 16 5 8 6))
+#F
+
+&gt; (true-for-all-pairs? &lt; '(3 7 19 22 43))
+#T
+</pre>
+<hr>
+<p><b>Problem 2.</b> If <em>n</em> lines are drawn in a plane, and no
+  two lines are parallel, how many regions to they separate the plane
+  into? </p><p>Remember lines are infinite -- lines with two endpoints, in
+  contrast, are called <em>line segments</em>, and lines with one
+  endpoint are called <em>rays</em>. Do not use line segments or rays
+  for this problem. </p><p> State your answer as a Theorem, and prove it
+  using Induction.</p><p> 
+
+ <!-- Terminology: The set of all lines, regions, and
+  intersections of <em>n</em> lines is called the <em>geometric
+  arrangement</em>. Arrangements are famous combinatorial objects, and
+  much of discrete mathematics focuses on counting their size. This
+  field if called <em>combinatorics</em>. -->
+
+</p><hr>
+<p><a name="optional"></a>
+ <b>Extra Credit: <br>Optional Problem 3.</b><br>
+This problem is harder. It is for extra credit. </p><p>
+You will not be asked about the Y combinator on exams. This exercise
+is for students who want to learn more about mathematical logic,
+using the tools we have taught you.</p><p>
+</p><p> We now derive the <em>Y combinator</em>, one of the fundamental results of
+mathematical logic (specifically, of the Œª-Calculus (recursive
+procedure theory)). You already know that in some cases it is not
+necessary to give a procedure a name. For example,
+</p><p></p><pre>  ((lambda (x) (+ x 1)) 6)
+</pre>
+<p>adds 1 to 6 without naming the procedure that does it. But, what about a 
+recursive procedure? For example, 
+</p><p></p><pre>  (define fact
+    (lambda (n)
+      (if (zero? n)
+          1
+          (* n (fact (- n 1))))))
+</pre>
+<p>which computes the factorial of a number n, seems to need the name "fact" so 
+that in the last line of the procedure it can recurse on itself. But, we will 
+see this is not necessary and, in the process, will develop a lot of intuition 
+about using Scheme. We proceed step by step, changing "fact" slightly on each 
+step. 
+</p><p><b>Step 1</b>. The first idea is simply to pass "fact" in as an argument in 
+much the same way that we did for 
+</p><p></p><pre>  (define op-maker
+    (lambda (op)
+      (lambda (x y)
+        (op x y))))
+</pre>
+<p>The first lambda passes the name of the operation and the second lambda is 
+the nameless operation. Let's try this with "fact". The first attempt is 
+</p><p></p><pre>  (define fact-maker
+    (lambda (procedure)
+      (lambda (n)
+        (if (zero? n)
+            1
+            (* n (procedure (- n 1)))))))
+</pre>
+<p>The idea will be to pass "fact-maker" in through "procedure". Thus, what we 
+would like to do is invoke (fact-maker fact-maker) to produce our nameless 
+(well, almost nameless) factorial procedure. This would allow us to write, for 
+example 
+</p><p></p><pre>  &gt;((fact-maker fact-maker) 5)
+  120
+</pre>
+<p>But, this doesn't work because "fact-maker" is a procedure which takes as 
+input one argument that is a procedure but "procedure", which is supposed to be 
+identical to "fact", requires a numeric argument. The solution is the following: 
+
+</p><p></p><pre>  (define fact-maker
+    (lambda (procedure)
+      (lambda (n)
+         (if (zero? n)
+             1
+             (* n ((procedure procedure) (- n 1)))))))
+</pre>
+<p>Try this, for example, with </p><pre> &gt;((fact-maker fact-maker) 5)</pre>
+<p>Well, we got the name out of the body of the procedure but we still have to 
+pass the procedure in and so far we have been using a name to do that. So let's 
+try to get the whole dependence on a name out. 
+</p><p><b>Step 2</b>. Recall we demand that "fact" be identical to (procedure 
+procedure) which in turn must be identical to (fact-maker fact-maker) (recall 
+the example ((fact-maker fact-maker) 5) which gives the same result as (fact 
+5)). Thus, we can write "fact-maker" in the following way, making use of the 
+result of step 1. 
+</p><p></p><pre>  (define fact
+    ((lambda (procedure)
+       (lambda (n)
+         (if (zero? n)
+             1
+             (* n ((procedure procedure) (- n 1))))))
+     (lambda (procedure)
+       (lambda (n)
+         (if (zero? n)
+             1
+             (* n ((procedure procedure) (- n 1))))))))
+</pre>
+<p>Try this with &gt;(fact 5) 
+</p><p>Consider the following: 
+</p><p></p><pre>  (((lambda (procedure)
+      (lambda (n)
+        (if (zero? n)
+            1
+            (* n ((procedure procedure) (- n 1))))))
+    (lambda (procedure)
+      (lambda (n)
+        (if (zero? n)
+            1
+            (* n ((procedure procedure) (- n 1)))))))
+   5)
+</pre>
+<p>This produces the factorial of 5 because the procedure which is invoked (the 
+huge mess) is exactly the definition of "fact." But, lo and behold, there is no 
+name for this procedure anywhere! 
+</p><p>In what follows, we try to generalize this to all procedures and wind up with 
+the  "applicative-order Y-combinator."
+</p><p><b>Step 3</b>. First, we need to separate out the part that pertains to 
+computing the factorial. The goal is to write this part in one place and when 
+code for other problems is substituted for the factorial code, the result will 
+be a new recursive procedure. This step is a little tricky because we insist on 
+using, with no significant changes, code that was designed assuming a procedure 
+name. The section of factorial code we currently have, from step 2, is 
+</p><p></p><pre>  (define F
+    (lambda (n)
+      (if (zero? n)
+          1
+          (* n ((procedure procedure) (- n 1))))))
+</pre>
+<p>This is different from what we want because it contains a (procedure 
+procedure) where we would like to see a plain old procedure. So, we use a trick 
+to get it out. In general, isn't 
+</p><p></p><pre>  (f arg)
+</pre>
+<p>identical to 
+</p><p></p><pre>  ((lambda (x) (f x)) arg) ?
+</pre>
+<p>The second statement is a little strange, though, because it makes you pass 
+"arg" into a procedure so that the procedure which would be applied to it anyway 
+is applied. Why do we want to do such a thing? Watch! This means that 
+</p><p></p><pre>  ((procedure procedure) (- n 1))
+</pre>
+<p>is the same as 
+</p><p></p><pre>  ((lambda (arg) ((procedure procedure) arg)) (- n 1))
+</pre>
+<p>and we substitute this into our current version of F to get 
+</p><p></p><pre>  (define F
+    (lambda (n)
+      (if (zero? n)
+          1
+          (* n ((lambda (arg) ((procedure procedure) arg)) (- n 1))))))
+</pre>
+<p>How has this helped? Well, the (lambda (arg)...) is ONE procedure and 
+procedures can be passed as arguments so F can be defined as 
+</p><p></p><pre>  (define F
+    ((lambda (func-arg)
+       (lambda (n)
+         (if (zero? n)
+             1
+             (* n (func-arg (- n 1))))))
+     (lambda (arg) ((procedure procedure) arg))))
+</pre>
+<p>Yes, it's the same F but the old definition looked like this: 
+</p><p></p><pre>  (define F (lambda (n) ... &lt; procedure &gt;))
+</pre>
+<p>and the new definition looks like this: 
+</p><p></p><pre>  (define F ((lambda (func-arg) (lambda (n) ...)) &lt; procedure &gt;))
+</pre>
+<p>where &lt; procedure &gt; is the (lambda (arg) ((procedure... ) ...) ...) 
+expression 
+</p><p><b>Step 4</b>. - Now we are ready to take the result of step 3 and apply it 
+to the result of step 2. Writing out the whole thing, we get: 
+</p><p></p><pre>  (define fact
+    ((lambda (procedure)
+       ((lambda (func-arg)
+          (lambda (n)
+            (if (zero? n)
+                1
+                (* n (func-arg (- n 1))))))
+        (lambda (arg) ((procedure procedure) arg))))
+     (lambda (procedure)
+       ((lambda (func-arg)
+          (lambda (n)
+            (if (zero? n)
+                1
+                (* n (func-arg (- n 1))))))
+        (lambda (arg) ((procedure procedure) arg))))))
+</pre>
+<p>You will probably want to study this carefully. Notice the double left parens 
+in front of ((lambda (func-arg)... This is because we are writing 
+</p><p></p><pre>   ...
+   ((lambda (func-arg) &lt; body-using-func-arg &gt;) (lambda (arg) ...))
+</pre>
+<p>which has the same form as 
+</p><p></p><pre>  ((lambda (arg) ((procedure procedure) arg)) (- n 1))
+</pre>
+<p>but is different in that a procedure is passed as an "arg" instead of an 
+integer. 
+</p><p>The two expressions beginning with (lambda (func-arg) ...) are exactly the 
+pieces of code that correspond to the factorial code and they are in exactly the 
+right form. So we can get them out of the definition of fact in the following 
+way: 
+</p><p></p><pre>  (define F*
+    (lambda (func-arg)
+      (lambda (n)
+        (if (zero? n)
+            1
+            (* n (func-arg (- n 1)))))))
+</pre>
+<p></p><pre>  (define fact
+    ((lambda (procedure)
+       (F* (lambda (arg) ((procedure procedure) arg))))
+     (lambda (procedure)
+       (F* (lambda (arg) ((procedure procedure) arg))))))
+</pre>
+<p>This is significant because we can now use any procedure in place of F* to 
+change functionality to whatever we want. The only problem is that, as written, 
+we still need to name F*. This is easily remedied in the next step. 
+</p><p><b>Step 5</b>. Jackpot! Now we write the dreaded applicative-order 
+Y-combinator: 
+</p><p></p><pre>  (define Y
+    (lambda (X)
+      ((lambda (procedure)
+         (X (lambda (arg) ((procedure procedure) arg))))
+       (lambda (procedure)
+         (X (lambda (arg) ((procedure procedure) arg)))))))
+</pre>
+<p>Notice that the procedure which does our computation is X (we stopped using 
+F* to emphasize this code can be applied to any procedure) and that is passed in 
+as an argument. 
+</p><p><b>Step 6</b>. We can write "fact" in terms of the Y-combinator as follows: 
+</p><p></p><pre>  (define fact (Y F*))
+</pre>
+<p>Try &gt;(fact 5) to check the result. For that matter, try &gt;((Y F*) 5). 
+But Y is general and F* is specific to factorial but with no name! If we wrote 
+the whole thing out it would be 
+</p><p></p><pre>  (((lambda (X)
+      ((lambda (procedure)
+         (X (lambda (arg) ((procedure procedure) arg))))
+       (lambda (procedure)
+         (X (lambda (arg) ((procedure procedure) arg))))))
+    (lambda (func-arg)
+      (lambda (n)
+        (if (zero? n)
+            1
+            (* n (func-arg (- n 1)))))))
+   5)
+</pre>
+<p>Look Ma! No name! Just to show the generality of all this let's use the Y 
+combinator to define another procedure. Say findmax - finding the largest 
+integer in a list. 
+</p><p></p><pre>  (define findmax
+    (lambda (l)
+      (if (null? l)
+          'no-list
+          (if (null? (cdr l))
+              (car l)
+              (max (car l) (findmax (cdr l)))))))
+</pre>
+<p>First, create the analog of F* for fact, call it M for max. 
+</p><p></p><pre>  (define M
+    (lambda (func-arg)
+      (lambda (l)
+        (if (null? l)
+            'no-list
+            (if (null? (cdr l))
+                (car l)
+                (max (car l) (func-arg (cdr l))))))))
+</pre>
+<p>Now try ((Y M) '(4 5 6 3 4 8 6 2)) to see if it works. If you want to build 
+it out it looks like this: 
+</p><p></p><pre>  (((lambda (X)
+      ((lambda (procedure)
+         (X (lambda (arg) ((procedure procedure) arg))))
+       (lambda (procedure)
+         (X (lambda (arg) ((procedure procedure) arg))))))
+    (lambda (func-arg)
+      (lambda (l)
+        (if (null? l)
+            'no-list
+            (if (null? (cdr l))
+                (car l)
+                (max (car l) (func-arg (cdr l))))))))
+   '(4 5 6 3 4 8 6 2))
+</pre>
+<p> Read and understand the material above. 
+</p><p> Test your understanding:
+ <em>For Extra  Credit</em>  write findmax without using the 
+procedure name "max". How many of the remaining names in findmax do you 
+think can be disposed of? </p>
+
+
+
+
+<hr>
+<!-- #include virtual="../../ssi/pset-nav.ssi" -->
+
+
+
+</body></html>Ytext/htmlUUTF-8    ( ? N ` v î ï Á4•4Ø                           4µ

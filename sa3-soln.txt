@@ -1,0 +1,153 @@
+Sample solution to Short Assignment #3 of CS 230
+
+Here is the original function
+
+(define multiply
+  (lambda ((a <number>) (b <integer>))
+    (cond ((zero? b) 0)
+          ((odd? b)
+           (+ a (multiply (+ a a) (quotient b 2))))
+          (else
+           (multiply (+ a a) (quotient b 2))))))
+
+You are asked to prove, for any number a and any integer b >= 0, that
+
+    (multiply a b) ==> ab
+
+We will prove this by induction on b.
+
+Suppose b > 0.  Our induction hypothesis will be that for any number
+x and for all integers c < b,
+
+   (multiply x c) = xc
+
+Using the substitution model on (multiply a b) gives us:
+
+[{proc (a b) (cond ...)} {a} {b}]
+
+which leads us to evaluate:
+
+(cond ((zero? {b}) 0)
+      ((odd? {b})
+        (+ {a} (multiply (* 2 {a}) (quotient {b} 2))))
+      (else
+        (multiply (* 2 {a}) (quotient {b} 2))))))
+
+We now evaluate the cond, which is a special form.  We assumed that
+b > 0, because we are doing the inductive case.  b = 0 is the base case 
+and will be done later.  Therefore we have two cases to consider: 
+b even and b odd.  
+
+If b is even, we must evaluate:
+
+   (multiply (* 2 {a}) (quotient {b} 2))
+
+We know that (* 2 {a}) evaluates to {2a}.  Because b is even, 
+(quotient {b} 2) evaluates to {b/2}.  Because b > 0 we know that
+b/2 < b, so the induction hypothesis allows us to conclude that:
+
+   (multiply (* 2 {a}) (quotient {b} 2)) = {2a}{b/2} = ab.
+
+If b is odd, we must evaluate:
+
+   (+ {a} (multiply (* 2 {a}) (quotient {b} 2)))
+
+Let x = (quotient b 2).  Since b is odd, b = 2x + 1.  By simple
+algebra, we see that x = (b-1)/2.  Because b > 0 we can conclude
+that (b-1)/2 < b, so the induction hypothesis allows us to 
+conclude that:
+
+   (multiply (* 2 {a}) (quotient {b} 2)) =
+   (multiply {2a} {b-1/2})) =      (by the inductive hypothesis)
+   {2a}*{b-1/2} = {ab - a}
+
+Substituting this into the forumula above gives:
+
+   (+ {a} (multiply (* 2 {a}) (quotient {b} 2))) =
+   (+ {a} {ab - a}) =
+   = a + ab - a = ab
+
+Thus when b > 0, (multiply a b) = ab.
+
+What remains is the case where b = 0.
+
+Basis:  When b = 0, 
+
+   ((zero? b) 0)
+
+returns 0.  Therefore (multiply a b) returns 0, which is correct.
+
+By the induction principle, we may conclude that the
+(multiply a b) = ab for all numbers a and integers b >= 0.
+
+
+Why This Algorithm Works
+
+The Russian peasant's method, sometimes called the "shift-and-add"
+algorithm, is actually the same method we learned for multiplying
+numbers back in grade school.  For instance, to multiply 105 x 31
+you would write:
+
+            1 0 5
+        x     3 1
+        ---------
+            1 0 5
+        + 3 1 5 0
+        ---------
+          3 2 5 5
+
+Let a = 105, and let a2 = 1, a1 = 0, a0 = 5 be the digits of a.
+Let b = 31, and let b1 = 3, b2 = 1 be the digits of b.
+
+The above algorithm is basically computing:
+
+(1)    ab = (1a * b0) + (10a * b1)
+
+In general, if a is an m-digit number and b is an n-digit number, then
+the product can be written as:
+
+(2)    ab =   (10^0 * a * b[0])
+            + (10^1 * a * b[1])
+              ...
+            + (10^(n-1) * a * b[n-1])
+
+The same technique works to multiply numbers in binary (base 2),
+except that in binary, we only have to worry about 0 and 1.  Thus, if
+we have the digits of a and b in binary, the algorithm is:
+
+(3)    ab =   (2^0 * a * b[0])
+            + (2^1 * a * b[1])
+	      ...
+            + (2^(n-1) * a * b[n-1])
+
+Observe, however, that if x = 2^p * a, then
+
+(4)    2x = 2(2^p * a) = 2^(p+1) * a
+
+Furthermore, since each digit of b is either 0 or 1, we are either
+adding (2^i * a) or 0 for each 0 <= i < n.  So basically, our
+algorithm runs a loop (expressed here in pseudo-code),
+
+  let i = 0
+  let product = 0
+  let x = a
+
+  while(i < n)
+    if b[i] = 1
+      product := product + x   // add in 2^i * a
+
+    i := i + 1
+    x := 2 * x                 // set x to 2^(i+1) * a
+
+  return product
+
+At each step, we consider the next digit of b.  If it is 1, we add in
+the appropriate 2^i * a, which is saved in x.  We then compute the
+next value 2^(i+1) * a, taking advantage of Equation (4), and go on to
+the next digit.
+
+A integer's lowest-order binary digit is 0 if the integer is even, an
+1 if it is odd.  Thus, by testing whether b is odd, we are effectively
+checking whether that digit is 0 or 1.  Dividing by 2 and throwing
+away the remainder effectively "shifts" b to the right by one binary
+digit, discarding the lowest-order bit.

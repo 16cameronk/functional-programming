@@ -1,0 +1,132 @@
+Sample solution to Short Assignment #3 of CS 230
+
+Here is the original function
+
+(define multiply
+  (lambda ((a <number>) (b <integer>))
+    (cond ((zero? b) 0)
+          ((odd? b)
+           (+ a (multiply (+ a a) (quotient b 2))))
+          (else  
+           (multiply (+ a a) (quotient b 2))))))
+
+You are asked to prove, for any number a and any integer b >= 0, that
+
+    (multiply a b) ==> ab
+
+I will prove this by induction on b.
+
+Suppose b > 0.  Suppose too that for all even integers c <= b,
+
+   (multiply 2a c/2) = ac
+
+This is our induction hypothesis.  (Note that it is okay for c to be
+equal to b, because when b > 0, b/2 < b, and we always wind up in a
+smaller case).
+
+Now, there are two cases to consider.  If b is even, (multiply a b)
+expands to:
+
+   (multiply (+ a a) (quotient b 2))
+
+We know that (+ a a) = 2a, and because b is even, the induction
+hypothesis lets us conclude that
+
+   (multiply (+ a a) (quotient b 2))
+	     = (multiply 2a b/2)
+	     = ab
+
+If b is odd, (multiply a b) expands to:
+
+   (+ a (multiply (+ a a) (quotient b 2)))
+
+Let x = (quotient b 2).  Since b is odd, b = 2x + 1.  By simple
+algebra, we see that x = (b-1)/2.  Letting c = (b - 1), the induction
+hypothesis permits us to conclude that:
+
+   (multiply (+ a a) (quotient b 2)) 
+	     = (multiply 2a (b-1)/2)
+	     = a(b - 1)
+	     = ab - a
+
+Substituting this into the original expression gives:
+
+   (+ a a(b - 1)) = a + a(b - 1) = a + ab - a = ab
+
+Therefore, we have the proof for the case where b > 0.
+
+Basis:  When b = 0, (multiply a b) expands to 0, which is correct.
+Therefore, by the induction principle, we may conclude that the
+operation works for all b >= 0.
+
+
+Why This Algorithm Works
+
+The Russian peasant's method, sometimes called the "shift-and-add"
+algorithm, is actually the same method we learned for multiplying
+numbers back in grade school.  For instance, to multiply 105 x 31
+you would write:
+
+            1 0 5
+        x     3 1
+        ---------
+            1 0 5
+        + 3 1 5 0
+        ---------
+          3 2 5 5
+
+Let a = 105, and let a2 = 1, a1 = 0, a0 = 5 be the digits of a.
+Let b = 31, and let b1 = 3, b2 = 1 be the digits of b.
+
+The above algorithm is basically computing:
+
+(1)    ab = (1a * b0) + (10a * b1)
+
+In general, if a is an m-digit number and b is an n-digit number, then
+the product can be written as:
+
+(2)    ab =   (10^0 * a * b[0])
+            + (10^1 * a * b[1])
+              ...
+            + (10^(n-1) * a * b[n-1])
+
+The same technique works to multiply numbers in binary (base 2),
+except that in binary, we only have to worry about 0 and 1.  Thus, if
+we have the digits of a and b in binary, the algorithm is:
+
+(3)    ab =   (2^0 * a * b[0])
+            + (2^1 * a * b[1])
+	      ...
+            + (2^(n-1) * a * b[n-1])
+
+Observe, however, that if x = 2^p * a, then
+
+(4)    2x = 2(2^p * a) = 2^(p+1) * a
+
+Furthermore, since each digit of b is either 0 or 1, we are either
+adding (2^i * a) or 0 for each 0 <= i < n.  So basically, our
+algorithm runs a loop (expressed here in pseudo-code),
+
+  let i = 0
+  let product = 0
+  let x = a
+
+  while(i < n)
+    if b[i] = 1,
+      product := product + x   // add in 2^i * a
+
+    i := i + 1
+    x := 2 * x                 // set x to 2^(i+1) * a
+
+  return product
+
+At each step, we consider the next digit of b.  If it is 1, we add in
+the appropriate 2^i * a, which is saved in x.  We then compute the
+next value 2^(i+1) * a, taking advantage of Equation (4), and go on to
+the next digit.
+
+A integer's lowest-order binary digit is 0 if the integer is even, an
+1 if it is odd.  Thus, by testing whether b is odd, we are effectively
+checking whether that digit is 0 or 1.  Dividing by 2 and throwing
+away the remainder effectively "shifts" b to the right by one binary
+digit, discarding the lowest-order bit.

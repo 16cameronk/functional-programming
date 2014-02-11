@@ -1,0 +1,90 @@
+Short Assignment #5 of CS 230
+
+Keng Low
+
+Here is the original function
+
+(define square-int
+  (lambda ((n <integer>))
+	(if (= n 0) 
+		0
+        (+ n (- n 1) (square-int (- n 1))))))
+
+You are asked to prove, for that if n is a non-negative integer, that
+
+	(square-int n) ==> n^2
+
+We will prove this by induction on n.
+
+Suppose n > 0. Our induction hypothesis will be that for 
+all integers c < b,
+
+	(square-int c) = c^2
+
+Using the substitution model on (square-int n) gives us
+
+[{proc (n) (cond ...)} {n}]
+
+which leads us to evaluate:
+
+	(if (= n 0) 
+		0
+        (+ n (- n 1) (square-int (- n 1))))))
+
+We now evaluate the if, which is a special form. We assumed that
+n > 0, because we are doing the inductive case. n = 0 is the base case
+and will be done later. Therefore, 
+
+	(+ {n} (- {n} 1) (square-int (- {n} 1)))
+
+If n = 1,
+	
+	(+ {1} (- {1} 1) (square-int (- {1} 1)))
+
+	(+ {1} {0} (square-int ({0})))
+
+	(+ {1} {0} {0})
+
+	= 1	
+
+So, for n = 1,
+
+	(square-int n) ==> n^2
+
+If n = 2,
+
+	(n + (n-1) + (
+		(+ {n-1} (- {n-1} 1) (square-int (- {n-1} 1)))))
+
+	(n + (n-1) + (n-1) + (n-2) + (square-int ({n-2})))
+
+	({2} + ({2}-1) + ({2}-1) + ({2}-2) + (square-int ({{2}-2})))
+
+	(2 + 1 + 1 + 0 + (square-int({0})))
+
+	(2 + 1 + 1 + 0 + {0})
+
+	= 4
+
+So, for n = 2,
+
+	(square-int n) ==> n^2
+
+So what we observe,
+
+	(+ n (* 2 (summation of i = 0 to i = (n - 1))))
+	==> (+ n (* 2 (n (- n 1))))
+				   --------
+				      2
+	==> (+ n (- n^2 n))
+	==> n^2
+
+Thus when n > 0, (square-int n) = n^2
+
+Basis: When n = 0,
+	
+		(if (= n 0) 
+		0
+
+returns 0. Therefore (square-int n) returns 0, which is correct.
+	

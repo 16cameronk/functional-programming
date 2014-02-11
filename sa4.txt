@@ -1,0 +1,89 @@
+Keng Low
+
+* Tyler was a big help for Problem 2.
+
+# Problem 1
+
+> Write a procedure true-for-all-pairs? that takes a predicate and a 
+sentence as arguments. The predicate must accept two words as its 
+arguments. Your procedure should return #t if the argument 
+predicate will return true for every two adjacent words in the 
+sentence:
+
+```
+(define true-for-all pairs
+  (lambda ((fn <function>)
+           (list <list>))
+  	(letrec ((loop (lambda (item <something>) (list2 <list>)
+                         (if (fn (item) (first list2))
+                             (if (null? (rest list2)
+                                        (fn (item) (first list2))
+                                        (loop (first list2) (rest list2))))
+                             (fn (item) (first list2))))))
+          (loop (first list) (first (rest list))))))
+                             
+(true-for-all-pairs? equal? '(a b c c d)) ;; #F
+
+(true-for-all-pairs? equal? '(a a a a a)) ;; #T
+
+(true-for-all-pairs? < '(20 16 5 8 6)) ;; #F
+
+(true-for-all-pairs? < '(3 7 19 22 43)) ;; #T
+```
+
+# Problem 2
+
+> If n lines are drawn in a plane, and no two lines are parallel, 	
+how many regions to they separate the plane into?
+
+> Remember lines are infinite -- lines with two endpoints, 
+in contrast, are called line segments, 
+and lines with one endpoint are called rays. 
+Do not use line segments or rays for this problem.
+
+> State your answer as a Theorem, and prove it using Induction.
+
+For a plane, we notice the following behavior:
+
+| Lines | Regions | Difference |
+|-------|---------|------------|
+|   0   |    1    |      0     |
+|   1   |    2    |    + 1     |
+|   2   |    4    |    + 2     |
+|   3   |    7    |    + 3     | 
+|   4   |   11    |    + 4     |
+
+Note that the nth line creates n additional regions.
+It creates one region before and after it crosses another line.
+
+Using recurrence relations,
+
+	T(n) = T(n - 1) + n
+	T(n) = n + T(n-1)
+		 = n + n-1 + n-2 + .... + T(0)
+		 = n + n-1 + n-2 + .... + {1}
+		     n(n + 1)
+		 =  --------- + 1 
+		    	2 
+		     n(n + 1)
+	T(n) =  --------- + 1 
+		    	2 
+
+For the base case where n = 0, T(0) = 1
+
+Suppose for some k, T(k) =  k(k + 1)
+							--------  + 1
+								2 
+
+When we add the (k + 1)th line, we now have
+
+				    k(k + 1)
+	T(k) + k + 1 =  --------  + 1 + k + 1
+					   2
+				    k(k + 1)    2(k + 1)
+				 =  --------  + -------- + 1
+					   2  			2
+
+				 =  (k + 1)(k + 2)
+				    -------------- + 1
+				           2        	   

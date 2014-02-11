@@ -1,0 +1,536 @@
+bplist00Ñ_WebMainResourceÕ	
+_WebResourceData_WebResourceMIMEType_WebResourceTextEncodingName_WebResourceFrameName^WebResourceURLON®<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"><html><head>
+  <title>Reasoning about Algorithmic Complexity</title>
+  <link rel="stylesheet" type="text/css" href="../cs18.css">
+  <link rel="shortcut icon" href="../img/yinyang.ico">
+<style type="text/css"></style></head>
+<body>
+
+
+<table class="title" align="center">
+<tbody><tr>
+  <td align="center">
+    CS 230
+  </td>
+</tr>
+</tbody></table>
+
+
+<h1>Reasoning about Algorithmic Complexity</h1>
+
+<!-- Warning ... this has not been fully checked for Dylanisms or
+     other lingering -isms from previous incarnations of CS 18. -->
+
+<p>When we write a program, our first concern is that the program
+should be <em>correct</em>, in other words, that it should produce
+correct answers.  However, we also need to concern ourselves with the
+<em>efficiency</em> of programs -- that is, how much time and memory
+our program takes to solve the problem.  From a practical standpoint,
+a program which is guaranteed to produce the correct answer, but which
+takes three billion years to run, is not much more useful than a
+program that gives a wrong answer almost immediately.</p>
+
+<h2><a name="asymptotic"></a>Asymptotic Analysis</h2>
+
+<p>When we analyze the efficiency of a program, we are generally
+trying to estimate how much time or memory the program needs, as a
+function of the input size.  The function describing how much time the
+algorithm needs is called the <span class="def">time complexity</span>, 
+while the function describing how much memory or storage is called the
+<span class="def">space complexity</span> of the algorithm.</p>
+
+<p>How to describe the size of the input depends on the problem we are
+trying to solve.  For instance, recall the simple code we used in 
+<a href="../lectures/l03.0-recursion.txt">Lecture 3</a> to do
+multiplication:</p>
+
+<pre><code>
+(define multiply-1
+  (lambda ((a &lt;number&gt;) (b &lt;integer&gt;))
+    (if (zero? b)
+        0
+        (+ a (multiply-1 a (- b 1))))))
+</code></pre>
+
+<p>This function uses time proportional to the magnitude of
+<var>b</var>.  In other words, we mean that there is some constant
+<var>c</var> so that the function takes no more than <var>cb</var>
+units of time.  For this reason, we say that the runtime of this
+function is <strong>linear in <var>b</var></strong>.</p>
+
+<p>The <span class="def">asymptotic behaviour</span> of a function
+<var>f</var> refers to the growth of <var>f(n)</var> as <var>n</var>
+becomes large.  When <var>f(n)</var> describes the running time of an
+algorithm on a problem of size <var>n</var>, we typically ignore small
+values of <var>n</var>, since we are usually interested in estimating
+how slow the program will be on large inputs.  A typical rule of thumb
+is:</p>
+
+<blockquote><p>
+  The slower the asymptotic growth rate, the better the algorithm.</p>
+</blockquote>
+
+<p>(Although this is often not the whole story).  By this measure, a
+<em>linear</em> algorithm is better than a <em>quadratic</em>
+algorithm.  That is because for any positive constants <var>c</var>
+and <var>d</var>, there is always some value of <var>n</var> at which
+the magnitude of <var>cn<sup>2</sup></var> overtakes <var>dn</var> (in
+this case, whenever <var>n &gt; d/c</var>).  For moderate values of
+<var>n</var>, the quadratic algorithm could very well take less time
+than the linear one, for instance if <var>c</var> is significantly
+smaller than <var>d</var>.  However, the linear algorithm will always
+be better for sufficiently large inputs.</p>
+
+<h3><a name="case"></a>Worst Case &amp; Average Case Analysis</h3>
+
+<p>One way of gauging the runtime of an algorithm is to say that
+<var>f(n)</var> is an upper bound on the running time for <em>any</em>
+input of size <var>n</var>.  This is called <span class="def">worst-case analysis</span>.  The algorithm might well take
+less time on <em>some</em> inputs of size <var>n</var>, but it doesn't
+matter -- if the algorithm takes <var>n<sup>2</sup></var> steps on
+<em>any single input</em> of size <var>n</var>, it's still a quadratic
+algorithm.</p>
+
+<p>A popular alternative to worst-case analysis is called <span class="def">average-case analysis</span>.  Here, we do not look for an
+upper bound on the worst-case running time, but instead try to
+calculate the <em>expected</em> time spent on a randomly chosen input.
+This type of analysis is typically harder, since it usually involves
+probabilistic arguments, and often requires assumptions about the
+distribution of inputs that may be difficult to justify.</p>
+
+<h3><a name="notation"></a>Order of Growth &amp; "Big-O" Notation</h3>
+
+<p>In estimating the running time of <tt>multiply-1</tt> (or any other
+procedure) we don't know (or care) what the constant <var>c</var>
+is. We know that it is a constant of moderate size, but other than
+that it is not important; we have enough evidence from the asymptotic
+analysis to know that a logarithmic time algorithm for multiplication
+(see below) is faster than the linear version, even though the
+constants may differ somewhat. (This does not alway hold, the
+constants can sometimes make a difference, but it has been a good
+enough rule-of-thumb that it is quite widely applied.) </p>
+
+<p>We may not even be able to measure the constant <var>c</var>
+directly. For example, we may know that a given expression of the
+language, such as <tt>if</tt> takes a constant number of machine
+instructions, but we may not know exactly how many. Moreover, the same
+sequence of instructions executed on a Pentium will take less time
+than on a 486 (although the difference will be roughly a constant
+factor). So these estimates are usually only accurate up to a constant
+factor. For these reasons, we usually ignore constant factors in
+comparing asymptotic running times. </p>
+
+<p>Computer scientists have developed a convenient notation for hiding
+the constant factor. We write <var>O(n)</var> (read: "order
+<var>n</var>") instead of "<var>cn</var> for some constant
+<var>c</var>." Thus an algorithm is said to be <var>O(n)</var> or
+<var>linear time</var> if there is a fixed constant <var>c</var> such
+that for all sufficiently large <var>n</var>, the algorithm takes time
+at most <var>cn</var> on inputs of size <var>n</var>. An algorithm is
+said to be <var>O(n<sup>2</sup>)</var> or <var>quadratic time</var> if
+there is a fixed constant <var>c</var> such that for all sufficiently
+large <var>n</var>, the algorithm takes time at most
+<var>cn<sup>2</sup></var> on inputs of size <var>n</var>.
+<var>O(1)</var> means <var>constant time</var>. </p>
+
+<p><var>Polynomial time</var> means <var>n<sup>O(1)</sup></var>, or
+<var>n<sup>c</sup></var> for some constant <var>c</var>. Thus any
+constant, linear, quadratic, or cubic (<var>O(n<sup>3</sup>)</var>)
+time algorithm is a polynomial-time algorithm.</p>
+
+<p>This is called <var>big-O notation</var>. It captures the important
+differences in the asymptotic growth rates of functions. </p>
+
+<p>One important advantage of big-O notation is that it makes
+algorithms much easier to analyze, since we can conveniently ignore
+low-order terms.  For example, an algorithm that runs in time </p>
+
+<p><var>10n<sup>3</sup> + 24n<sup>2</sup> + 3n log n + 144</var>
+</p>
+
+<p>is still a cubic algorithm, since </p>
+
+<p><var>10n<sup>3</sup> + 24n<sup>2</sup> + 3n log n + 144<br> â‰¤
+10n<sup>3</sup> + 24n<sup>3</sup> + 3n<sup>3</sup> + 144n<sup>3<br>
+</sup>â‰¤ (10 + 24 + 3 + 144)n<sup>3<br> </sup>=
+O(n<sup>3</sup>)</var>. </p>
+
+<p>Of course, since we are ignoring constant factors, any two linear
+algorithms will be considered equally good by this measure. There may
+even be some situations in which the constant is so huge in a linear
+algorithm that even an exponential algorithm with a small constant may
+be preferable in practice. This is a valid criticism of asymptotic
+analysis and big-O notation.  However, as a rule of thumb it has
+served us well. Just be aware that it is <var>only</var> a rule of
+thumb -- the asymptotically optimal algorithm is not necessarily the
+best one. </p>
+
+<p>Some common orders of growth seen often in complexity analysis are
+</p>
+
+<table align="center">
+<tbody><tr>
+  <td><var>O(1)</var></td>
+  <td>constant</td>
+</tr>
+<tr>
+  <td><var>O(log n)</var></td>
+  <td>logarithmic</td>
+</tr>
+<tr>
+  <td><var>O(n)</var></td>
+  <td>linear</td>
+</tr>
+<tr>
+  <td><var>O(n log n)</var></td>
+  <td>"n log n"</td>
+</tr>
+<tr>
+  <td><var>O(n<sup>2</sup>)</var></td>
+  <td>quadratic</td>
+</tr>
+<tr>
+  <td><var>O(n<sup>3</sup>)</var></td>
+  <td>cubic</td>
+</tr>
+<tr>
+  <td><var>n<sup>O(1)</sup></var></td>
+  <td>polynomial</td>
+</tr>
+<tr>
+  <td><var>2<sup>O(n)</sup></var></td>
+  <td>exponential</td>
+</tr>
+</tbody></table>
+
+<p>Here <var>log</var> means <var>log<sub>2</sub></var> or the
+logarithm to the base 2, although it doesn't really matter since
+logarithms to different bases differ by a constant factor. Note also
+that <var>2<sup>O(n)</sup></var> and <var>O(2<sup>n</sup>)</var> are
+not the same! </p>
+
+<hr>
+
+<h2><a name="4"></a>Comparing Orders of Growth</h2>
+
+<dl>
+<dt><b>Definition</b> 
+
+</dt><dd><p>Let <var>f</var> and <var>g</var> be functions from positive
+  integers to positive integers. We say <var>f = O(g)</var> (read:
+  "<var>f</var> is order <var>g</var>") if there exists a fixed constant
+  <var>c</var> such that for all <var>n</var>, </p>
+  
+  <p><var>f(n) &lt; cg(n)</var>. </p>
+  
+  <p>Equivalently, <var>f</var> is <var>O(g)</var> if the function
+  <var>f(n)/g(n)</var> is bounded above. </p>
+  
+</dd><dd><p>We say <var>f = o(g)</var> (read: "<var>f</var> is little-o of
+  <var>g</var>") if for all arbitrarily small real <var>c &gt; 0</var>,
+  for all but perhaps finitely many <var>n</var>,</p>
+  
+  <p><var>f(n) &lt; cg(n)</var>. </p>
+  
+  <p>Equivalently, <var>f</var> is <var>o(g)</var> if the function
+  <var>f(n)/g(n)</var> tends to 0 as <var>n</var> tends to
+  infinity. </p>
+</dd></dl>
+
+<p>Here are some examples: </p>
+
+<ul>
+  <li><var>n + log n = O(n)</var>, because for all <var>n &gt;
+  1</var>, <var>n + log n &lt; 2n</var>.
+
+  </li><li><var>n<sup>1000</sup> = o(2<sup>n</sup>)</var>, because
+  <var>n<sup>1000</sup>/2<sup>n</sup></var> tends to 0 as <var>n</var>
+  tends to infinity.
+
+  </li><li>For any fixed but arbitrarily small real number <var>c</var>,
+  <var>n log n = o(n<sup>1+c</sup>)</var>, since <var>n log n /
+  n<sup>1+c</sup></var> tends to 0. To see this, take the logarithm
+
+  <p><var>log(n log n / n<sup>1+c</sup>)<br>
+	  = log(n log n) - log(n<sup>1+c</sup>)<br>
+	  = log n + log log n - (1+c)log n<br>
+	  = log log n - c log n</var><br>
+	</p>
+
+  <p>and observe that it tends to negative infinity. </p>
+</li></ul>
+
+<p>We now introduce some convenient rules for manipulating expressions
+involving order notation. These rules, which we state without proof,
+are useful for working with orders of growth: </p>
+
+<ol>
+  <li><var>cn<sup>m</sup> = O(n<sup>k</sup>)</var> for any constant
+  <var>c</var> and any <var>m â‰¤ k</var>.
+
+  </li><li><var>O(f(n)) + O(g(n)) = O(f(n) + g(n))</var>. 
+
+  </li><li><var>O(f(n))O(g(n)) = O(f(n)g(n))</var>. 
+
+  </li><li><var>O(cf(n)) = O(f(n))</var> for any constant
+  <var>c</var>.
+  
+  </li><li><var>c</var> is <var>O(1)</var> for any constant
+  <var>c</var>.
+  
+  </li><li><var>log<sub>b</sub>n = O(log n)</var> for any base <var>b</var>. 
+</li></ol>
+
+<hr>
+
+<h2><a name="5"></a>Analyzing Running Times of Procedures</h2>
+
+<p>Now we can use these ideas to analyze the asymptotic running time
+of Scheme procedures. The use of order notation can greatly simplify
+our task here. We assume that the primitive operations of our
+language, such as arithmetic operations, tests, and primitives like
+<tt>cons</tt>, <tt>car</tt>, and <tt>cdr</tt> all take constant
+time. </p>
+
+<p>Consider the following multiplication routine: </p>
+
+<pre><code>
+(define multiply-1
+  (lambda ((a &lt;number&gt;) (b &lt;integer&gt;))
+    (if (zero? b)
+        0
+        (+ a (multiply-1 a (sub1 b))))))  
+</code></pre>
+
+<p>What is the order of growth of the time required by
+<tt>multiply-1</tt> as a function of <var>n</var>, where <var>n</var>
+is the magnitude of the parameter <tt>b</tt>? Note that the "size" of
+a number can be measured either in terms of its magnitude or in terms
+of the number of digits (the space it takes to write the number
+down). Often the number of digits is used, but here we use the
+magnitude. Note that it takes only about <var>log<sub>10</sub> x</var>
+digits to write down a number of magnitude <var>x</var>, thus these
+two measures are very different. Make sure you know which one is being
+used.</p>
+
+<p>We assume that all the primitive operations in the
+<tt>multiply-1</tt> procedure (<tt>zero?</tt>, <tt>if</tt>,
+<var>+</var>, and <tt>dec</tt>) and the overhead for procedure calls
+take constant time. Thus if <var>n = 0</var>, the procedure takes
+constant time. If <var>n &gt; 0</var>, the time taken on an input of
+magnitude <var>n</var> is constant time plus the time taken by the
+recursive call on <tt>n-1</tt>. Thus the running time <var>T(n)</var>
+of <tt>multiply-1</tt> is a solution of </p>
+
+<table>
+<tbody><tr>
+  <td><var>T(n) = T(n-1) + O(1)</var></td>
+  <td>for <var>n &gt; 0</var></td>
+</tr>
+<tr>
+  <td><var>T(0) = O(1)</var></td>
+</tr>
+</tbody></table>
+
+<p>This is called a <var>recurrence relation</var>. It simply states
+that the time to multiply a number <var>a</var> by another number
+<var>b</var> of size <var>n &gt; 0</var> is the time required to
+multiply <var>a</var> by a number of size <var>n-1</var> plus a
+constant amount of work (the primitive operations performed).
+Furthermore, the time to multiply <var>a</var> by zero is a constant
+(only constant-time primitives are involved). In other words, there
+are constants <var>c</var> and <var>d</var> such that <var>T(n)</var>
+satisfies </p>
+
+<table>
+<tbody><tr>
+  <td><var>T(n) = T(n-1) + c</var></td>
+  <td>for <var>n &gt; 0</var></td>
+</tr>
+<tr>
+  <td><var>T(0) = d</var></td>
+</tr>
+</tbody></table>
+
+<p>This more specific recurrence relation has a unique closed form
+solution, namely </p>
+
+<p><var>T(n) = d + cn</var> </p>
+
+<p>which is <var>O(n)</var>, so the algorithm is linear in the
+magnitude of its second argument. One can obtain this equation by
+generalizing from small values of <var>n</var>, then prove that it is
+indeed a solution to the recurrence relation by induction on
+<var>n</var>. </p>
+
+<p>Now consider the following procedure for multiplying two numbers:
+</p>
+
+<pre><code>
+(define multiply-2
+  (lambda ((a &lt;number&gt;) (b &lt;integer&gt;))
+    (cond ((zero? b) 0)
+    ((even? b) 
+     (multiply-2 (* 2 a) (quotient b 2)))
+    (else 
+     (+ a (multiply-2 a (sub1 b)))))))
+</code></pre>
+
+<p>Again we want an expression for the running time in terms of
+<var>n</var>, the magnitude of the parameter <tt>b</tt>.  The
+recurrence for this problem is more complicated than the previous one:
+</p>
+
+<table>
+<tbody><tr>
+  <td><var>T(n) = T(n-1) + O(1)</var></td>
+  <td>if <var>n &gt; 0</var> and <var>n</var> is odd</td>
+</tr>
+<tr>
+  <td><var>T(n) = T(n/2) + O(1)</var></td>
+  <td>if <var>n &gt; 0</var> and <var>n</var> is even</td>
+</tr>
+<tr>
+  <td><var>T(0) = O(1)</var></td>
+</tr>
+</tbody></table>
+
+<p>We somehow need to figure out how often the first versus the second
+branch of this recurrence will be taken. It's easy if <var>n</var> is
+a power of two, i.e. if <var>n = 2<sup>m</sup></var> for some integer
+<var>m</var>. In this case, the second branch of will only get taken
+when <var>n</var> = 1, because <var>2<sup>m</sup></var> is even except
+when <var>m</var> = 0, i.e. when <var>n</var> = 1. Note further that
+<var>T(1) = O(1)</var> because <var>T(1) = T(0) + O(1) = O(1) + O(1) =
+O(1)</var>. Thus, for this special case we get the recurrence </p>
+
+<table>
+<tbody><tr>
+  <td><var>T(n) = T(n/2) + O(1)</var></td>
+  <td>if <var>n &gt; 0</var> and <var>n</var> is a power of 2</td>
+</tr>
+<tr>
+  <td><var>T(0) = O(1)</var></td>
+</tr>
+</tbody></table>
+
+<p>or </p>
+
+<table>
+<tbody><tr>
+  <td><var>T(n) = T(n/2) + c</var></td>
+  <td>for <var>n &gt; 0</var> and <var>n</var> is a power of 2</td>
+</tr>
+<tr>
+  <td><var>T(0) = d</var></td>
+</tr>
+</tbody></table>
+
+<p>for some constants <var>c</var> and <var>d</var>. The closed form
+solution of this is, for powers of 2, </p>
+
+<p><var>T(n) = d + c log<sub>2</sub> n</var> </p>
+
+<p>which is <var>O(log n)</var>. </p>
+
+<p>What if <var>n</var> is not a power of 2? The running time is still
+<var>O(log n)</var> even in this more general case. Intuitively, this
+is because if <var>n</var> is odd, then <var>n-1</var> is even, so on
+the next recursive call the input will be halved. Thus the input is
+halved at least once in every two recursive calls, which is all you
+need to get <var>O(log n)</var>. </p>
+
+<p>A good way to handle this formally is to <var>charge the cost of a
+call to</var> <tt>multiply-2</tt> <var>on an odd input to the
+recursive call on an even input that must immediately follow
+it</var>. We reason as follows: on an even input <var>n</var>, the
+cost is the cost of the recursive call on <var>n/2</var> plus a
+constant, or </p>
+
+<p><var>T(n) = T(n/2) + O(1)</var> </p>
+
+<p>as before. On an odd input <var>n</var>, we recursively call the
+procedure on <var>n-1</var>, which is even, so we immediately call the
+procedure again on <var>(n-1)/2</var>. Thus the total cost on an odd
+input is the cost of the recursive call on <var>(n-1)/2</var> plus a
+constant. In this case we get </p>
+
+<p><var>T(n) = T((n-1)/2) + O(1)</var> </p>
+
+<p>In either case, </p>
+
+<p><var>T(n) â‰¤ T(n/2) + O(1)</var> </p>
+
+<p>which has the solution <var>O(log n)</var>. This approach is more
+or less the same as explicitly unwinding the <tt>cond</tt> clause that
+handles odd inputs: </p>
+
+<pre><code>
+(define multiply-2 
+  (lambda ((a &lt;number&gt;) (b &lt;integer&gt;))
+    (cond ((zero? b) 0)
+          ((even? b) 
+            (multiply-2 (* 2 a) (quotient b 2)))
+          (else 
+            (+ a (multiply-2 (* 2 a) (quotient (sub1 b) 2)))))))
+</code></pre>
+
+<p>then analyzing the rewritten program, without actually doing the
+rewriting.</p>
+
+<p>Charging one operation to another (bounding the number of times one
+thing can happen by the number of times that another thing happens) is
+a common technique for analyzing the running time of complicated
+algorithms.</p>
+
+<p>Order notation is a useful tool, and should not be thought of as
+being just a theoretical exercise. For example, the practical
+difference in running times between the logarithmic
+<tt>multiply-2</tt> and the linear <tt>multiply-1</tt> is noticeable
+even for moderate values of <var>n</var>. With the version of Scheme
+on my Mac, <tt>(multiply-1 100 100)</tt> takes 16 milliseconds and
+<tt>(multiply-2 100 100)</tt> takes less than 1 millisecond -- not a
+big difference, overall, and certainly not enough to notice. However,
+when <var>b</var> = 10,000, <tt>multiply-1</tt> takes 8.65 seconds
+whereas <tt>multiply-2</tt> takes less than 1 millisecond.  This is
+already quite a huge difference -- about a factor of 9000.</p>
+
+<p>When <var>b</var> = 100,000, <tt>multiply-1</tt> runs out of stack
+space before finishing, because there are too many deferred
+operations.  The <tt>multiply-2</tt> procedure still only requires
+less than a millisecond for this value.  <var>n</var>.  By the time
+<var>b</var> gets to around 10<sup>50</sup>, <tt>multiply-2</tt> takes
+the 16 milliseconds or so needed by <tt>multiply-1</tt> on <var>b =
+100</var>.</p>
+
+<hr>
+
+<h2><a name="key_points"></a>Key Points</h2>
+
+<p>The key points in this handout are: </p>
+
+<ul>
+  <li>We can use the asymptotic growth rates of functions (as
+  <var>n</var> gets large) to bound the resources required by a given
+  algorithm and to compare the relative efficiency of different
+  algorithms.
+
+  </li><li>Big-O notation provides a way of expressing rough bounds on the
+  resources required in a form that is meaningful yet easy to work
+  with.
+
+  </li><li>Recurrence relations can be used to express the running times of
+  recursive programs, and can often be solved for a closed form
+  expression of the running time.
+</li></ul>
+
+<hr>
+[an error occurred while processing this directive]
+<hr>
+[an error occurred while processing this directive]
+
+
+
+
+
+</body></html>Ytext/htmlUUTF-8P_Ehttp://www.cs.duke.edu/brd/Teaching/dm/handouts/order-of-growth.shtml    ( : P n … ”OFOPOVOW                           OŸ
