@@ -272,11 +272,12 @@
         (letrec
             ((loop
               (lambda (edges-lst exits-lst)
-                (if (equal? state-name (name (start (car edges-lst))))
-                    (if (equal? symbol (label (car edges-lst)))
-                        (loop (cdr edges-lst) (union exits-lst (list (finish (car edges-lst)))))
-                        (loop (cdr edges-lst) exits-lst))
-                (loop (cdr edges-lst) exits-lst)))))
+                (display edges-lst))))
+                ;(if (equal? state-name (name (start (car edges-lst))))
+                ;    (if (equal? symbol (label (car edges-lst)))
+                ;        (loop (cdr edges-lst) (union exits-lst (list (finish (car edges-lst)))))
+                ;        (loop (cdr edges-lst) exits-lst))
+                ;(loop (cdr edges-lst) exits-lst)))))
           (loop (edges dfa) '()))
         #f)))
       
