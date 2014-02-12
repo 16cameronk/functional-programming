@@ -25,13 +25,7 @@
 ;;Note these functions are the same
 ;;
 ;;(define foldl accumulate)
-;;accumulate was defined in class as well as in SICP 
-
-(define accumulate                                                                    
- (lambda (initial op l)                                                               
-    (cond ((null? l) initial)                                                         
-      (else                                                                           
-        (op (car l) (accumulate initial op (cdr l)))))))                              
+;;accumulate was defined in class as well as in SICP                             
                                                                                       
 ;;Note: (accumulate  '() cons '(1 2 3 4)) => '(1 2 3 4)
 ;;(define foldr (lambda (op init lst) (accumulate init op lst)))                        
@@ -440,6 +434,12 @@
 ;(step-nfa nfa1 'a 2)
 ;==> #f
 
+(define accumulate                                                                    
+ (lambda (initial op l)                                                               
+    (cond ((null? l) initial)                                                         
+      (else                                                                           
+        (op (car l) (accumulate initial op (cdr l)))))))  
+
 (define simulate-nfa
   (lambda (dfa lst)
     (letrec
@@ -450,11 +450,13 @@
                ;(member? state (final-states dfa))
                display state)
               (else
+               ;display state)))))
                (loop
-                (accumulate '()
-                 (lambda (state1)
-                   (step-nfa dfa state1 (car trip)))
-                   state)
+                (append '()
+                       (map
+                        (lambda (state1)
+                          (step-nfa dfa state1 (car trip)))
+                        state))
                 (cdr trip)))))))
       (loop (step-nfa dfa (start-state dfa) (car lst)) (cdr lst)))))
 
