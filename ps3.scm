@@ -256,7 +256,47 @@
 
 ;;; ----- Problem 3 -----
 
+(define has-state
+  (lambda (state dfa)
+    (if (member? state (name-vertices (vertices dfa)))
+        #t
+        #f)))
+
+(define get-edges
+  (lambda (state dfa)
+    (filter
+     (lambda (edge)
+       (equal? state (name (start edge))))
+     (edges dfa))))
+
+(define get-symbol
+  (lambda (state dfa symbol)
+    (filter
+     (lambda (weight)
+       (equal? symbol (label weight)))
+     (get-edges state dfa))))
+
+(define one-symbol
+  (lambda (state dfa symbol)
+    (if (= 1 (length (get-symbol state dfa symbol)))
+        #t
+        #f)))
+
+(define name-state
+  (lambda (state dfa symbol)
+    (name (finish (car (get-symbol state dfa symbol))))))
+  
+
 (define step-dfa
+  (lambda (dfa state symbol)
+    (if (has-state state dfa)
+        (if (one-symbol state dfa symbol)
+            (name-state state dfa symbol)
+            #f)
+        #f)))
+
+    
+(define step-dfa-2
   (lambda (dfa state-name symbol)
     (letrec
         ((loop
@@ -297,13 +337,16 @@
     #f))
         
 
-(step-dfa dfa1 'd 0) 
+;(step-dfa dfa1 'd 0) 
 ;==> #f
-(step-dfa dfa1 'c 1)
+;(step-dfa dfa1 'c 1)
 ;==> c
-; (step-dfa dfa1 'a 0) ==> a
-; (step-dfa dfa1 'a 1) ==> b
-; (step-dfa dfa1 'a 2) ==> #f
+;(step-dfa dfa1 'a 0)
+;==> a
+;(step-dfa dfa1 'a 1)
+;==> b
+;(step-dfa dfa1 'a 2)
+;==> #f
 
 ;(define bad-dfa
 ;  (make-automaton '(a b c) 
