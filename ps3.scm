@@ -348,17 +348,32 @@
 ;(step-dfa dfa1 'a 2)
 ;==> #f
 
-;(define bad-dfa
-;  (make-automaton '(a b c) 
-; 	    '((a a 0) (a b 0) (b a 1) (b c 0) (c b 0) (c c 1))
-;            'a '(a)))
+(define bad-dfa
+  (make-automaton '(a b c) 
+ 	    '((a a 0) (a b 0) (b a 1) (b c 0) (c b 0) (c c 1))
+            'a '(a)))
 
-; (step-dfa bad-dfa 'a 0) ==> #f
+;(step-dfa bad-dfa 'a 0)
+;==> #f
 
 ;; ----- Problem 4 -----
 
-; (simulate-dfa dfa1 '(1 0 0 1)) ==> #t
-; (simulate-dfa dfa1 '(1 0 1 1)) ==> #f
+(define simulate-dfa
+  (lambda (dfa lst)
+    (letrec
+        ((loop
+          (lambda (state trip)
+            (cond 
+              ((null? trip)
+               (member? state (final-states dfa)))
+              (else
+               (loop (step-dfa dfa state (car trip)) (cdr trip)))))))
+      (loop (start-state dfa1) lst))))
+
+;(simulate-dfa dfa1 '(1 0 0 1)) 
+;==> #t
+;(simulate-dfa dfa1 '(1 0 1 1))
+;==> #f
 
 (define integer->binary
   (lambda (n)
@@ -366,8 +381,10 @@
 	  (else (append (integer->binary (quotient n 2)) 
                         (list (if (even? n) 0 1)))))))
           
-; (simulate-dfa dfa1 (integer->binary 12))
-; (simulate-dfa dfa1 (integer->binary 10))
+;(simulate-dfa dfa1 (integer->binary 12))
+;==> #t
+;(simulate-dfa dfa1 (integer->binary 10))
+;==> #f
 
 ;; ----- Problem 5 -----
 
