@@ -19,11 +19,24 @@
   (lambda (obj lst)
     (not (not (member obj lst)))))
 
+;;foldr and foldl are provided in scheme                                                
+                                                                                      
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;Note these functions are the same
 ;;
 ;;(define foldl accumulate)
 ;;accumulate was defined in class as well as in SICP 
+
+(define accumulate                                                                    
+ (lambda (initial op l)                                                               
+    (cond ((null? l) initial)                                                         
+      (else                                                                           
+        (op (car l) (accumulate initial op (cdr l)))))))                              
+                                                                                      
+;;Note: (accumulate  '() cons '(1 2 3 4)) => '(1 2 3 4)
+;;(define foldr (lambda (op init lst) (accumulate init op lst)))                        
+;;Note: (foldr cons '() '(1 2 3 4)) => '(1 2 3 4)                                       
+;;Whereas: (foldl cons '() '(1 2 3 4) => '(4 3 2 1)  
 
 ;; ------ Data type definitions -----
 
@@ -368,7 +381,7 @@
                (member? state (final-states dfa)))
               (else
                (loop (step-dfa dfa state (car trip)) (cdr trip)))))))
-      (loop (start-state dfa1) lst))))
+      (loop (start-state dfa) lst))))
 
 ;(simulate-dfa dfa1 '(1 0 0 1)) 
 ;==> #t
@@ -388,13 +401,72 @@
 
 ;; ----- Problem 5 -----
 
-;(define nfa1
-;  (make-automaton '(a b c d e)
-;	    '((a a 0) (a a 1) (a b 1) (a c 0) (b d 1) (c e 0)
-;	      (d d 0) (d d 1) (e e 0) (e e 1))
-;	    'a
-;	    '(d e)))
+(define some-symbol
+  (lambda (state dfa symbol)
+    (if (< 0 (length (get-symbol state dfa symbol)))
+        #t
+        #f)))
+
+(define name-states
+  (lambda (state dfa symbol)
+    (map
+     (lambda (x)
+       (name (finish x))) 
+     (get-symbol state dfa symbol))))
+
+(define step-nfa
+  (lambda (nfa state symbol)
+    (if (has-state state nfa)
+        (if (some-symbol state nfa symbol)
+            (name-states state nfa symbol)
+            #f)
+        #f)))
+
+(define nfa1
+  (make-automaton '(a b c d e)
+	    '((a a 0) (a a 1) (a b 1) (a c 0) (b d 1) (c e 0)
+	      (d d 0) (d d 1) (e e 0) (e e 1))
+	    'a
+	    '(d e)))
             
+;(step-nfa nfa1 'f 0) 
+;==> #f
+;(step-nfa nfa1 'c 0)
+;==> (e)
+;(step-nfa nfa1 'a 0)
+;==> (a c)
+;(step-nfa nfa1 'a 1)
+;==> (a b)
+;(step-nfa nfa1 'a 2)
+;==> #f
+
+(define simulate-nfa
+  (lambda (dfa lst)
+    (letrec
+        ((loop
+          (lambda (state trip)
+            (cond 
+              ((null? trip)
+               ;(member? state (final-states dfa))
+               display state)
+              (else
+               (loop
+                (accumulate '()
+                 (lambda (state1)
+                   (step-nfa dfa state1 (car trip)))
+                   state)
+                (cdr trip)))))))
+      (loop (step-nfa dfa (start-state dfa) (car lst)) (cdr lst)))))
+
+(simulate-nfa nfa1 '(0 1))
+;==> #f
+;(simulate-nfa nfa1 '(1 0))
+;==> #f
+;(simulate-nfa nfa1 '(0 1))
+;==> #f
+;(simulate-nfa nfa1 '(1 1))
+;==> #t
+
 ;; ----- Problem 6 -----
 
 (define g2 (make-graph '(a b c) '((a b) (b a) (a c) (c a) (b c))))
