@@ -455,7 +455,10 @@
                 (append '()
                        (map
                         (lambda (state1)
-                          (step-nfa dfa state1 (car trip)))
+                          (if (not (eq? #f (step-nfa dfa state1 (car trip))))
+                              (step-nfa dfa state1 (car trip))
+                              '()
+                              ))
                         state))
                 (cdr trip)))))))
       (loop (step-nfa dfa (start-state dfa) (car lst)) (cdr lst)))))
