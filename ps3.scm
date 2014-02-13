@@ -449,21 +449,30 @@
           '()))
      state)))
 
-(define (atom? x)
-  (and (not (pair? x)) (not (null? x))))
+;(define (atom? x)
+;  (and (not (pair? x)) (not (null? x))))
 
-(define (strip lst)
-  (if (or (null? lst) (atom? lst) (not (null? (cdr lst))))
-      lst
-      (strip (car lst))))
+;(define (strip lst)
+;  (if (or (null? lst) (atom? lst) (not (null? (cdr lst))))
+;      lst
+;      (strip (car lst))))
+
+;(define (flatten lst)
+;  (cond ((or (null? lst) (atom? lst))
+;         lst)
+;        ((null? (strip (car lst)))
+;         (flatten (cdr lst)))
+;        (else
+;         (cons (flatten (strip (car lst))) (flatten (cdr lst))))))    
 
 (define (flatten lst)
-  (cond ((or (null? lst) (atom? lst))
-         lst)
-        ((null? (strip (car lst)))
-         (flatten (cdr lst)))
-        (else
-         (cons (flatten (strip (car lst))) (flatten (cdr lst))))))    
+  (cond 
+    ((null? lst)
+      empty)
+    ((list? (car lst))
+      (append (flatten (car lst)) (flatten (cdr lst))))
+    (else
+      (cons (car lst) (flatten (cdr lst))))))
 
 (define in-final-states
   (lambda (states-lst final-states)
