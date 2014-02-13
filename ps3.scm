@@ -440,6 +440,18 @@
       (else                                                                           
         (op (car l) (accumulate initial op (cdr l)))))))  
 
+(define get-next
+  (lambda (nfa state symbol)
+    (map
+     (lambda (state1)
+      (if (not (eq? #f (step-nfa nfa state1 symbol)))
+          (step-nfa nfa state1 symbol)
+          '()))
+     state)))
+
+(define clean
+  (lambda 
+
 (define simulate-nfa
   (lambda (dfa lst)
     (letrec
@@ -452,14 +464,7 @@
               (else
                ;display state)))))
                (loop
-                (append '()
-                       (map
-                        (lambda (state1)
-                          (if (not (eq? #f (step-nfa dfa state1 (car trip))))
-                              (step-nfa dfa state1 (car trip))
-                              '()
-                              ))
-                        state))
+                (get-next dfa state (car trip))
                 (cdr trip)))))))
       (loop (step-nfa dfa (start-state dfa) (car lst)) (cdr lst)))))
 
