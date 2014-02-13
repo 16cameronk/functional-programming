@@ -468,7 +468,7 @@
 (define (flatten lst)
   (cond 
     ((null? lst)
-      empty)
+      empty) ; or '()
     ((list? (car lst))
       (append (flatten (car lst)) (flatten (cdr lst))))
     (else
@@ -501,8 +501,8 @@
           (lambda (state trip)
             (cond 
               ((null? trip)
-               ;(in-final-states state (final-states dfa)))
-               display state)
+               (in-final-states state (final-states dfa)))
+               ;display state)
               (else
                ;display state)))))
                (loop
@@ -510,20 +510,33 @@
                 (cdr trip)))))))
       (loop (step-nfa dfa (start-state dfa) (car lst)) (cdr lst)))))
 
-(simulate-nfa nfa1 '(0 1))
+;(simulate-nfa nfa1 '(0 1))
 ;==> #f
-(simulate-nfa nfa1 '(1 0))
+;(simulate-nfa nfa1 '(1 0))
 ;==> #f
-(simulate-nfa nfa1 '(0 0))
+;(simulate-nfa nfa1 '(0 0))
 ;==> #t
 ;(simulate-nfa nfa1 '(1 1))
 ;==> #t
+;(simulate-nfa nfa1 '(0 0 0))
+;==> #t
+;(simulate-nfa nfa1 '(1 1 1))
+;==> #t
+
 
 ;; ----- Problem 6 -----
 
 (define g2 (make-graph '(a b c) '((a b) (b a) (a c) (c a) (b c))))
 (define g3 (make-graph '(a b c d) '((a b) (b c) (a c) (c b) (d b))))
 (define g4 (make-graph '(a b c d) '((a b) (a c) (b a) (c a) (a d) (b c) (c b))))
+
+(define 
+
+(define path?
+  (lambda (start end g)
+    (letrec
+        ((loop
+          (lambda (
 
 ; (path? 'a 'e g1) ==> #t
 ; (path? 'd 'a g1) ==> #f
