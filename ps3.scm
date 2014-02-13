@@ -20,7 +20,7 @@
     (not (not (member obj lst)))))
 
 ;;foldr and foldl are provided in scheme                                                
-                                                                                      
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;Note these functions are the same
 ;;
@@ -440,7 +440,7 @@
       (else                                                                           
         (op (car l) (accumulate initial op (cdr l)))))))  
 
-(define get-next
+(define nfa-next
   (lambda (nfa state symbol)
     (map
      (lambda (state1)
@@ -449,8 +449,27 @@
           '()))
      state)))
 
-(define clean
-  (lambda 
+(define (atom? x)
+  (and (not (pair? x)) (not (null? x))))
+
+(define (strip lst)
+  (if (or (null? lst) (atom? lst) (not (null? (cdr lst))))
+      lst
+      (strip (car lst))))
+
+(define (flatten lst)
+  (cond ((or (null? lst) (atom? lst))
+         lst)
+        ((null? (strip (car lst)))
+         (flatten (cdr lst)))
+        (else
+         (cons (flatten (strip (car lst))) (flatten (cdr lst))))))    
+
+(define in-final-states
+  (lambda (state final-states)
+    (letrec
+        ((loop
+          (lambda (score
 
 (define simulate-nfa
   (lambda (dfa lst)
@@ -459,12 +478,12 @@
           (lambda (state trip)
             (cond 
               ((null? trip)
-               ;(member? state (final-states dfa))
+               ;(member? state (final-states dfa)))
                display state)
               (else
                ;display state)))))
                (loop
-                (get-next dfa state (car trip))
+                (car (flatten (nfa-next dfa state (car trip))))
                 (cdr trip)))))))
       (loop (step-nfa dfa (start-state dfa) (car lst)) (cdr lst)))))
 
