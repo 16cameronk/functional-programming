@@ -466,10 +466,24 @@
          (cons (flatten (strip (car lst))) (flatten (cdr lst))))))    
 
 (define in-final-states
-  (lambda (state final-states)
+  (lambda (states-lst final-states)
     (letrec
         ((loop
-          (lambda (score
+          (lambda (score states)
+            (cond
+              ((null? states)
+               (if (< 0 score)
+                   #t
+                   #f))
+              (else
+               (loop
+                (+ score 
+                   (if (member? (car states) final-states)
+                     1
+                     0))
+                (cdr states)))))))
+      (loop 0 states-lst))))
+                 
 
 (define simulate-nfa
   (lambda (dfa lst)
@@ -478,21 +492,21 @@
           (lambda (state trip)
             (cond 
               ((null? trip)
-               ;(member? state (final-states dfa)))
+               ;(in-final-states state (final-states dfa)))
                display state)
               (else
                ;display state)))))
                (loop
-                (car (flatten (nfa-next dfa state (car trip))))
+                (flatten (nfa-next dfa state (car trip)))
                 (cdr trip)))))))
       (loop (step-nfa dfa (start-state dfa) (car lst)) (cdr lst)))))
 
 (simulate-nfa nfa1 '(0 1))
 ;==> #f
-;(simulate-nfa nfa1 '(1 0))
+(simulate-nfa nfa1 '(1 0))
 ;==> #f
-;(simulate-nfa nfa1 '(0 1))
-;==> #f
+(simulate-nfa nfa1 '(0 0))
+;==> #t
 ;(simulate-nfa nfa1 '(1 1))
 ;==> #t
 
