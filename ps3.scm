@@ -163,8 +163,8 @@
                       (loop (cdr edges-lst) exit-lst))))))
       (loop (edges graph) '()))))
              
-;(define g1 (make-graph '(a b c d e) 
-;		       '((a b) (a c) (b c) (b e) (c d) (d b))))
+(define g1 (make-graph '(a b c d e) 
+		       '((a b) (a c) (b c) (b e) (c d) (d b))))
 
 ;(name-vertices (exits (lookup-vertex 'b (vertices g1)) g1))
 ; ==> (c e)
@@ -530,21 +530,41 @@
 (define g3 (make-graph '(a b c d) '((a b) (b c) (a c) (c b) (d b))))
 (define g4 (make-graph '(a b c d) '((a b) (a c) (b a) (c a) (a d) (b c) (c b))))
 
-(define 
-
 (define path?
   (lambda (start end g)
     (letrec
         ((loop
-          (lambda (
+          (lambda (visited visits)
+            (cond
+              ((eq? start end)
+               #t)
+              ((= 0 visits)
+               ;display visited)
+               (if (member? end visited)
+                   #t
+                   #f))
+              ;((= visits (- (length (vertices g)) 1))
+               ;display visited)
+              (else
+               (loop
+                (flatten
+                 (map
+                  (lambda (entry)
+                    (name-vertices (exits (lookup-vertex entry (vertices g)) g)))
+                  visited))
+                (- visits 1)))))))
+      (loop
+       (list (append '() start))
+       (+ (length (vertices g)) 2)))))
+                  
 
-; (path? 'a 'e g1) ==> #t
-; (path? 'd 'a g1) ==> #f
-; (path? 'a 'c g2) ==> #t
-; (path? 'c 'b g2) ==> #t
-; (path? 'd 'd g3) ==> #t
-; (path? 'a 'd g3) ==> #f
-; (path? 'b 'd g4) ==> #t
+;(path? 'a 'e g1) ;==> #t
+;(path? 'd 'a g1) ;==> #f
+;(path? 'a 'c g2) ;==> #t
+;(path? 'c 'b g2) ;==> #t
+;(path? 'd 'd g3) ;==> #t
+;(path? 'a 'd g3) ;==> #f
+;(path? 'b 'd g4) ;==> #t
 
 ;; ----- Problem 7 -----
 
