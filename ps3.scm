@@ -568,6 +568,41 @@
 
 ;; ----- Problem 7 -----
 
+(define there?
+  (lambda (start end journey)
+    (cond
+      ((not (eq? start (car journey))) #f)
+      ((not (eq? end (list-ref journey (- (length journey) 1)))) #f)
+      (else #t))))
+       
+(define ride
+  (lambda (lst g)
+            (cond
+              ((list? (car lst))
+               (append (ride (car lst)) (ride (cdr lst))))
+              ((< (length (name-vertices (exits (lookup-vertex (list-ref lst (- (length lst) 1)) (vertices g)) g))) 2)
+               append lst (name-vertices (exits (lookup-vertex (list-ref lst (- (length lst) 1)) (vertices g)) g)))
+              ((> (length (name-vertices (exits (lookup-vertex (list-ref lst (- (length lst) 1)) (vertices g)) g))) 1)
+               (map
+                (lambda (destination)
+                  (append lst (list destination)))
+                (name-vertices (exits (lookup-vertex (list-ref lst (- (length lst) 1)) (vertices g)) g)))))))
+
+(define find-path
+  (lambda (start end g)
+    (letrec
+        ((loop
+          (lambda (check journey)
+            (cond
+              ((= check 0)
+               (if (path? start end g)
+                   loop (1 journey)
+                   #f))
+              (else
+               
+               (name-vertices (exits (lookup-vertex entry (vertices g)) g))
+               
+
 ; (name-vertices (find-path 'a 'e g1)) ==> (a b e)
 ; (find-path 'd 'a  g1)                   ==> #f
 ; (name-vertices (find-path 'a 'c g2)) ==> (a c) or (a b c)
