@@ -474,23 +474,6 @@
           '()))
      state)))
 
-;(define (atom? x)
-;  (and (not (pair? x)) (not (null? x))))
-
-;(define (strip lst)
-;  (if (or (null? lst) (atom? lst) (not (null? (cdr lst))))
-;      lst
-;      (strip (car lst))))
-
-;(define (flatten lst)
-;  (cond ((or (null? lst) (atom? lst))
-;         lst)
-;        ((null? (strip (car lst)))
-;         (flatten (cdr lst)))
-;        (else
-;         (cons (flatten (strip (car lst))) 
-;          (flatten (cdr lst))))))    
-
 (define (flatten lst)
   (cond 
     ((null? lst)
@@ -610,29 +593,51 @@
 (define there?
   (lambda (start end journey)
     (cond
-      ((not (eq? start (car journey))) #f)
+      ;((= 1 (length journey))
+      ; #f)
+      ((not 
+        (eq? start (car journey))) 
+       #f)
       ((not 
         (eq? end 
-             (list-ref journey (- (length journey) 1)))) #f)
+             (list-ref journey 
+                       (- (length journey) 1)))) 
+       #f)
       (else #t))))
        
+(define is-there?
+  (lambda (start end lst g)
+    (letrec
+        ((loop
+          (lambda (found lst)
+            (cond
+              ((eq? found #t)
+               #t)
+              ((null? lst)
+               #f)
+              ((not (list? (car lst)))
+               #f)
+              (else
+               (loop 
+                (there? start end (car lst)) 
+                (cdr lst)))))))
+      (loop #f lst))))
+    
 (define last-exit
   (lambda (lst g)
     (name-vertices 
      (exits 
       (lookup-vertex 
-       (list-ref lst (- (length lst) 1)) (vertices g)) g))))
-
-(define is-there?
-  (lambda (lst g)
-    
-
+       (list-ref lst 
+                 (- (length lst) 1)) 
+       (vertices g)) g))))
+            
 (define ride
   (lambda (lst g)
     (cond
       ((list? (car lst))
-       (append (ride (car lst)) (ride (cdr lst))))
-      ((< (length (last-exit lst g) 2)
+       (append (ride (car lst) g) (ride (cdr lst) g)))
+      ((< (length (last-exit lst g)) 2)
           append lst (last-exit lst g))
       ((> (length (last-exit lst g)) 1)
        (map
@@ -644,28 +649,31 @@
   (lambda (start end g)
     (letrec
         ((loop
-          (lambda (check journey distance found)
+          (lambda (check journey distance)
             (cond
-              ((eq? check #)
+              ((eq? check #f)
                (if (path? start end g)
-                   loop (1 journey distance found)
+                   (loop #t journey distance)
                    #f))
-              (
-               (map
-                (there?
+              ((is-there? start end journey g)
+                (car (filter is-there? journey)))
+              ((= 0 distance)
+               #f)
               (else
+               ;(display check) (display journey) (display distance))))))
                (loop
                 check
-                (ride journey)
+                (ride journey g)
                 (- distance 1)))))))
-      (loop
-       0
-       start
+      (loop 
+       #f 
+       (list start) 
+       (+ (length (vertices g)) 2)))))
        
                 
                
 
-; (name-vertices (find-path 'a 'e g1)) ==> (a b e)
+(name-vertices (find-path 'a 'e g1)) ==> (a b e)
 ; (find-path 'd 'a  g1)                   ==> #f
 ; (name-vertices (find-path 'a 'c g2)) ==> (a c) or (a b c)
 ; (name-vertices (find-path 'c 'b g2)) ==> (c a b)
