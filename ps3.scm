@@ -644,22 +644,23 @@
   (lambda (start end g)
     (letrec
         ((loop
-          (lambda (check journey distance)
+          (lambda (check journey distance found)
             (cond
-              ((= check 0)
+              ((eq? check #)
                (if (path? start end g)
-                   loop (1 journey)
+                   loop (1 journey distance found)
                    #f))
               (
                (map
                 (there?
               (else
                (loop
-                1
+                check
                 (ride journey)
                 (- distance 1)))))))
       (loop
        0
+       start
        
                 
                
