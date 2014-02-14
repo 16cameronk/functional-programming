@@ -84,8 +84,10 @@
 (define lookup-vertex
   (lambda (vname vlist)
     (cond ((null? vlist) #f)
-          ((equal? vname (name (first vlist))) (first vlist)) ;replaced car with first
-          (else (lookup-vertex vname (rest vlist)))))) ;replaced cdr with rest
+          ((equal? vname (name (first vlist))) (first vlist)) 
+          ;replaced car with first
+          (else (lookup-vertex vname (rest vlist)))))) 
+;replaced cdr with rest
 
 ;; make-graph takes two lists whose atoms are symbols, one of the form
 ;;   (v1 v2 v3 ...) 
@@ -126,8 +128,11 @@
 (define set-diff-vertices
   (lambda (list1 list2)
     (cond ((null? list1) '()) 
-          ((member-vertices (car list1) list2) (set-diff-vertices (cdr list1) list2))
-          (#t (cons (car list1) (set-diff-vertices (cdr list1) list2))))))
+          ((member-vertices 
+            (car list1) list2) 
+           (set-diff-vertices (cdr list1) list2))
+          (#t (cons (car list1) 
+                    (set-diff-vertices (cdr list1) list2))))))
 
 ;; Take the union of two sets represented as lists -- no duplicates
 
@@ -158,7 +163,8 @@
                (cond ((null? edges-lst) exit-lst)
                      ((equal? vertex (start (car edges-lst)))
                       (loop (cdr edges-lst)
-                            (union exit-lst (list (finish (car edges-lst))))))
+                            (union exit-lst 
+                                   (list (finish (car edges-lst))))))
                      (else 
                       (loop (cdr edges-lst) exit-lst))))))
       (loop (edges graph) '()))))
@@ -183,13 +189,17 @@
                   (else #f)))))
       (loop lst (cdr lst)))))
                    
-; In the worst-case scenario, we can assume that the entire list of 
-; vertices is traversed. In such a case, verify-path would find a connection
-; from one vertice to the next. This ensures that verify-path would be O(n).
-; However, note that verify-path queries exits for the connections that 
-; can be made at each vertice. Since there would be n such queries for a
+; In the worst-case scenario, we can assume that
+; the entire list of vertices is traversed. 
+; In such a case, verify-path would find a connection
+; from one vertice to the next. 
+; This ensures that verify-path would be O(n).
+; However, note that verify-path queries exits 
+; for the connections that can be made at each vertice. 
+; Since there would be n such queries for a 
 ; list of n vertices, the operation would be O(n).  
-; Since this is a nested loop inside verify-path, it would be O(n^(1+1)).
+; Since this is a nested loop inside verify-path, 
+; it would be O(n^(1+1)).
 ; As such O(n^k) for some k >= 0.
 
 ;(define tl
@@ -226,7 +236,8 @@
 ;;    
 (defclass <automaton> (<graph>)
   (start-state :initarg :start-state :accessor start-state)
-  (final-states :initarg :final-states :accessor final-states)) ;start-state <symbol> final-states <list>
+  (final-states :initarg :final-states :accessor final-states)) 
+;start-state <symbol> final-states <list>
 ;;note: all accessors that apply to graph apply to automaton
   
 ;; make-automaton takes four parameters.  
@@ -240,7 +251,8 @@
 ;; The fourth is a list of symbols that represent final states.
 
 (define make-automaton
-  (lambda (v-names e-list s-state f-states) ;v-names <list>, e-list <list>, s-state <symbol>, f-states <list>
+  (lambda (v-names e-list s-state f-states) 
+    ;v-names <list>, e-list <list>, s-state <symbol>, f-states <list>
     (let* ((v (map make-vertex v-names))
            (create-labeled-edge 
               (lambda (name1 name2 label)
@@ -308,14 +320,18 @@
     (letrec
         ((loop
           (lambda (edges-lst exits-lst)
-            (cond ((not (member? state-name (name-vertices (vertices dfa)))) #f)
-                  ((and (equal? state-name (name (start (car edges-lst))))
+            (cond 
+              ((not 
+                (member? state-name 
+                         (name-vertices (vertices dfa)))) #f)
+              ((and 
+                (equal? state-name (name (start (car edges-lst))))
                     (equal? symbol (label (car edges-lst))))
-                   (loop 
-                    (cdr edges-lst)
-                    (union exits-lst (list (finish (car edges-lst))))))
-                  (else
-                    (loop (cdr edges-lst) exits-lst))))))
+               (loop 
+                (cdr edges-lst)
+                (union exits-lst (list (finish (car edges-lst))))))
+              (else
+               (loop (cdr edges-lst) exits-lst))))))
       (loop (edges dfa) '()))))
 
 (define step-dfa-3
@@ -324,9 +340,13 @@
         (letrec
             ((loop
               (lambda (edges-lst exits-lst)
-                (if (equal? state-name (name (start (car edges-lst))))
+                (if (equal? state-name 
+                            (name (start (car edges-lst))))
                     (if (equal? symbol (label (car edges-lst)))
-                        (loop (cdr edges-lst) (union exits-lst (list (finish (car edges-lst)))))
+                        (loop 
+                         (cdr edges-lst) 
+                         (union exits-lst 
+                                (list (finish (car edges-lst)))))
                         (loop (cdr edges-lst) exits-lst))
                     (loop (cdr edges-lst) exits-lst)))))
           (loop (edges dfa) '()))
@@ -338,7 +358,10 @@
         (let loop ((edges-lst (edges dfa)) (exits-lst '()))
           (if (equal? state-name (name (start (car edges-lst))))
               (if (equal? symbol (label (car edges-lst)))
-                  (loop (cdr edges-lst) (union exits-lst (list (finish (car edges-lst)))))
+                  (loop 
+                   (cdr edges-lst) 
+                   (union exits-lst 
+                          (list (finish (car edges-lst)))))
                   (loop (cdr edges-lst) exits-lst))
               (loop (cdr edges-lst) exits-lst))))
     #f))
@@ -374,7 +397,9 @@
               ((null? trip)
                (member? state (final-states dfa)))
               (else
-               (loop (step-dfa dfa state (car trip)) (cdr trip)))))))
+               (loop 
+                (step-dfa dfa state (car trip)) 
+                (cdr trip)))))))
       (loop (start-state dfa) lst))))
 
 ;(simulate-dfa dfa1 '(1 0 0 1)) 
@@ -463,7 +488,8 @@
 ;        ((null? (strip (car lst)))
 ;         (flatten (cdr lst)))
 ;        (else
-;         (cons (flatten (strip (car lst))) (flatten (cdr lst))))))    
+;         (cons (flatten (strip (car lst))) 
+;          (flatten (cdr lst))))))    
 
 (define (flatten lst)
   (cond 
@@ -508,7 +534,11 @@
                (loop
                 (flatten (nfa-next dfa state (car trip)))
                 (cdr trip)))))))
-      (loop (step-nfa dfa (start-state dfa) (car lst)) (cdr lst)))))
+      (loop 
+       (step-nfa dfa 
+                 (start-state dfa) 
+                 (car lst)) 
+       (cdr lst)))))
 
 ;(simulate-nfa nfa1 '(0 1))
 ;==> #f
@@ -526,9 +556,15 @@
 
 ;; ----- Problem 6 -----
 
-(define g2 (make-graph '(a b c) '((a b) (b a) (a c) (c a) (b c))))
-(define g3 (make-graph '(a b c d) '((a b) (b c) (a c) (c b) (d b))))
-(define g4 (make-graph '(a b c d) '((a b) (a c) (b a) (c a) (a d) (b c) (c b))))
+(define g2 (make-graph 
+            '(a b c) 
+            '((a b) (b a) (a c) (c a) (b c))))
+(define g3 (make-graph 
+            '(a b c d) 
+            '((a b) (b c) (a c) (c b) (d b))))
+(define g4 (make-graph 
+            '(a b c d) 
+            '((a b) (a c) (b a) (c a) (a d) (b c) (c b))))
 
 (define path?
   (lambda (start end g)
@@ -550,7 +586,10 @@
                 (flatten
                  (map
                   (lambda (entry)
-                    (name-vertices (exits (lookup-vertex entry (vertices g)) g)))
+                    (name-vertices 
+                     (exits 
+                      (lookup-vertex entry 
+                                     (vertices g)) g)))
                   visited))
                 (- visits 1)))))))
       (loop
@@ -572,35 +611,57 @@
   (lambda (start end journey)
     (cond
       ((not (eq? start (car journey))) #f)
-      ((not (eq? end (list-ref journey (- (length journey) 1)))) #f)
+      ((not 
+        (eq? end 
+             (list-ref journey (- (length journey) 1)))) #f)
       (else #t))))
        
+(define last-exit
+  (lambda (lst g)
+    (name-vertices 
+     (exits 
+      (lookup-vertex 
+       (list-ref lst (- (length lst) 1)) (vertices g)) g))))
+
+(define is-there?
+  (lambda (lst g)
+    
+
 (define ride
   (lambda (lst g)
-            (cond
-              ((list? (car lst))
-               (append (ride (car lst)) (ride (cdr lst))))
-              ((< (length (name-vertices (exits (lookup-vertex (list-ref lst (- (length lst) 1)) (vertices g)) g))) 2)
-               append lst (name-vertices (exits (lookup-vertex (list-ref lst (- (length lst) 1)) (vertices g)) g)))
-              ((> (length (name-vertices (exits (lookup-vertex (list-ref lst (- (length lst) 1)) (vertices g)) g))) 1)
-               (map
-                (lambda (destination)
-                  (append lst (list destination)))
-                (name-vertices (exits (lookup-vertex (list-ref lst (- (length lst) 1)) (vertices g)) g)))))))
+    (cond
+      ((list? (car lst))
+       (append (ride (car lst)) (ride (cdr lst))))
+      ((< (length (last-exit lst g) 2)
+          append lst (last-exit lst g))
+      ((> (length (last-exit lst g)) 1)
+       (map
+        (lambda (destination)
+          (append lst (list destination)))
+        (last-exit lst g))))))
 
 (define find-path
   (lambda (start end g)
     (letrec
         ((loop
-          (lambda (check journey)
+          (lambda (check journey distance)
             (cond
               ((= check 0)
                (if (path? start end g)
                    loop (1 journey)
                    #f))
+              (
+               (map
+                (there?
               (else
-               
-               (name-vertices (exits (lookup-vertex entry (vertices g)) g))
+               (loop
+                1
+                (ride journey)
+                (- distance 1)))))))
+      (loop
+       0
+       
+                
                
 
 ; (name-vertices (find-path 'a 'e g1)) ==> (a b e)
