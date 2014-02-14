@@ -590,6 +590,11 @@
 
 ;; ----- Problem 7 -----
 
+;; there? checks if a journey e.g., '(a b c) fulfills
+;; the start and end requirements. If the start is 'a
+;; and end is 'c, it returns #t. If the start and/or
+;; end is anything else, it returns #f.
+
 (define there?
   (lambda (start end journey)
     (cond
@@ -604,6 +609,10 @@
                        (- (length journey) 1)))) 
        #f)
       (else #t))))
+
+;; is-there? inspects multiple routes and returns #t
+;; if there is at least one route among the routes that
+;; meet the start and end requirements.
        
 (define is-there?
   (lambda (start end lst g)
@@ -623,22 +632,38 @@
                 (cdr lst)))))))
       (loop #f lst))))
     
+;; Given a journey e.g. '(a b c), last-exit takes the last vertice 
+;; and finds the exits for it. For the case of g1, that would be 'd.
+
 (define last-exit
   (lambda (lst g)
+    ;(display lst)))
     (name-vertices 
      (exits 
       (lookup-vertex 
        (list-ref lst 
                  (- (length lst) 1)) 
        (vertices g)) g))))
+
+;; Given a journey e.g., '(a b c), ride creates the possible routes
+;; that the journey could take. So, in the case of g1, '(a b c)
+;; returns '(a b c d).
+;; In the case where there are multiple outcomes for one route e.g., '(a b),
+;; ride returns multiple routes '(a b c) and '(a b e).
+;; ride can also take in multiple routes and return the total routes
+;; that are possible outcomes.
             
 (define ride
   (lambda (lst g)
     (cond
-      ((list? (car lst))
-       (append (ride (car lst) g) (ride (cdr lst) g)))
+      ;((= (length lst) 1)
+      ; 
+      ;((list? lst)
+      ; (display (car lst)))
+      ;((list? (car lst))
+       ;(append (ride (car lst) g) (ride (cdr lst) g)))
       ((< (length (last-exit lst g)) 2)
-          append lst (last-exit lst g))
+       append lst (last-exit lst g))
       ((> (length (last-exit lst g)) 1)
        (map
         (lambda (destination)
@@ -672,8 +697,8 @@
        
                 
                
-
-(name-vertices (find-path 'a 'e g1)) ==> (a b e)
+;(find-path 'a 'e g1)
+;(name-vertices (find-path 'a 'e g1)) ==> (a b e)
 ; (find-path 'd 'a  g1)                   ==> #f
 ; (name-vertices (find-path 'a 'c g2)) ==> (a c) or (a b c)
 ; (name-vertices (find-path 'c 'b g2)) ==> (c a b)
