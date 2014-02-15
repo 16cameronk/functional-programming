@@ -638,13 +638,28 @@
 (define last-exit
   (lambda (lst g)
     ;(display lst)))
-    (name-vertices 
-     (exits 
-      (lookup-vertex 
-       (list-ref lst 
-                 (- (length lst) 1)) 
-       (vertices g)) g))))
-
+    (if (= (length lst) 1)
+        (name-vertices 
+                (exits 
+                 (lookup-vertex 
+                  (car lst) 
+                  (vertices g))
+                 g))
+        (letrec
+        ((loop
+          (lambda (lst1 lst2)
+            (cond 
+              ((null? lst2)
+               (name-vertices 
+                (exits 
+                 (lookup-vertex 
+                  (car lst1) 
+                  (vertices g))
+                 g)))
+              (else
+               (loop (cdr lst1) (cdr lst2)))))))
+      (loop lst (display lst))))))
+              
 ;; Given a journey e.g., '(a b c), ride creates the possible routes
 ;; that the journey could take. So, in the case of g1, '(a b c)
 ;; returns '(a b c d).
@@ -656,19 +671,19 @@
 (define ride
   (lambda (lst g)
     (cond
-      ;((= (length lst) 1)
-      ; 
-      ;((list? lst)
-      ; (display (car lst)))
-      ;((list? (car lst))
-       ;(append (ride (car lst) g) (ride (cdr lst) g)))
-      ((< (length (last-exit lst g)) 2)
-       append lst (last-exit lst g))
-      ((> (length (last-exit lst g)) 1)
-       (map
-        (lambda (destination)
-          (append lst (list destination)))
-        (last-exit lst g))))))
+      ((null? lst)
+       '())
+      ((list? (car lst))
+       (append (ride (car lst) g) (ride (cdr lst) g)))
+      (else
+       (cond
+         ((< (length (last-exit lst g)) 2)
+          append lst (last-exit lst g))
+         (else
+          (map
+           (lambda (destination)
+             (append lst (list destination)))
+           (last-exit lst g))))))))
 
 (define find-path
   (lambda (start end g)
@@ -681,7 +696,9 @@
                    (loop #t journey distance)
                    #f))
               ((is-there? start end journey g)
-                (car (filter (is-there? start end journey g) journey)))
+                (car (filter
+                      (lambda (one-journey)
+                        (there? start end one-journey g)) journey)))
               ((= 0 distance)
                #f)
               (else
@@ -697,7 +714,7 @@
        
                 
                
-;(find-path 'a 'e g1)
+(find-path 'a 'e g1)
 ;(name-vertices (find-path 'a 'e g1)) ==> (a b e)
 ; (find-path 'd 'a  g1)                   ==> #f
 ; (name-vertices (find-path 'a 'c g2)) ==> (a c) or (a b c)
