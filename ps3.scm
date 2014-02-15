@@ -598,8 +598,10 @@
 (define there?
   (lambda (start end journey)
     (cond
-      ;((= 1 (length journey))
-      ; #f)
+      ((not (list? journey))
+       #f)
+      ((= 1 (length journey))
+       #f)
       ((not 
         (eq? start (car journey))) 
        #f)
@@ -628,6 +630,7 @@
                #f)
               (else
                (loop 
+                ;(display lst)
                 (there? start end (car lst)) 
                 (cdr lst)))))))
       (loop #f lst))))
@@ -658,7 +661,7 @@
                  g)))
               (else
                (loop (cdr lst1) (cdr lst2)))))))
-      (loop lst (display lst))))))
+      (loop lst (cdr lst))))))
               
 ;; Given a journey e.g., '(a b c), ride creates the possible routes
 ;; that the journey could take. So, in the case of g1, '(a b c)
@@ -685,22 +688,41 @@
              (append lst (list destination)))
            (last-exit lst g))))))))
 
+(define vertices-lst
+  (lambda (lst g)
+    (letrec
+        ((loop
+          (lambda (lst1 lst2)
+            (cond
+              ((null? lst1) lst2)
+              (else
+               (loop
+                (cdr lst1)
+                 (append lst2 
+                         (list 
+                          (lookup-vertex
+                           (car lst1)
+                           (vertices g))))))))))
+      (loop lst '()))))
+
 (define find-path
   (lambda (start end g)
     (letrec
         ((loop
           (lambda (check journey distance)
             (cond
+              ((eq? start end)
+               (vertices-lst (list start) g))
               ((eq? check #f)
                (if (path? start end g)
                    (loop #t journey distance)
                    #f))
               ((is-there? start end journey g)
-                (car (filter
+                (vertices-lst (car (filter
                       (lambda (one-journey)
-                        (there? start end one-journey g)) journey)))
-              ((= 0 distance)
-               #f)
+                        (there? start end one-journey)) journey)) g))
+              ;((= 0 distance)
+              ; #f)
               (else
                ;(display check) (display journey) (display distance))))))
                (loop
@@ -714,11 +736,10 @@
        
                 
                
-(find-path 'a 'e g1)
-;(name-vertices (find-path 'a 'e g1)) ==> (a b e)
-; (find-path 'd 'a  g1)                   ==> #f
-; (name-vertices (find-path 'a 'c g2)) ==> (a c) or (a b c)
-; (name-vertices (find-path 'c 'b g2)) ==> (c a b)
-; (name-vertices (find-path 'd 'd g3)) ==> (d)
-; (find-path 'a 'd g3)                    ==> #f
-; (name-vertices (find-path 'b 'd g4)) ==> (b a d)
+;(find-path 'a 'e g1)
+;(name-vertices (find-path 'a 'e g1)) ;==> (a b e)
+;(find-path 'd 'a  g1)                  ;==> #f
+;(name-vertices (find-path 'a 'c g2)) ;==> (a c) or (a b c)
+;(name-vertices (find-path 'd 'd g3)) ;==> (d)
+;(find-path 'a 'd g3)                    ;==> #f
+;(name-vertices (find-path 'b 'd g4)) ;==> (b a d)
