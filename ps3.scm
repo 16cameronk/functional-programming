@@ -651,7 +651,7 @@
 ;; In the case where there are multiple outcomes for one route e.g., '(a b),
 ;; ride returns multiple routes '(a b c) and '(a b e).
 ;; ride can also take in multiple routes and return the total routes
-;; that are possible outcomes.
+;; that are possible outcomes.(find-path 'a 'e g1)(find-path 'a 'e g1)
             
 (define ride
   (lambda (lst g)
@@ -681,7 +681,7 @@
                    (loop #t journey distance)
                    #f))
               ((is-there? start end journey g)
-                (car (filter is-there? journey)))
+                (car (filter (is-there? start end journey g) journey)))
               ((= 0 distance)
                #f)
               (else
@@ -693,7 +693,7 @@
       (loop 
        #f 
        (list start) 
-       (+ (length (vertices g)) 2)))))
+       (+ (length (vertices g)) 10)))))
        
                 
                
