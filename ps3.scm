@@ -200,6 +200,9 @@
 ; list of n vertices, the operation would be O(n).  
 ; Since this is a nested loop inside verify-path, 
 ; it would be O(n^(1+1)).
+; "f(n), the maximum number of edges that are possible 
+; to have in a graph with n vertices is O(n^2)", 
+; where O(n^2) is an expression (function) of n.
 ; As such O(n^k) for some k >= 0.
 
 ;(define tl
